@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  flight-bot:
+    build: .
+    container_name: flight-deals-bot
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Health check')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Opcional: Base de datos externa (si decides usar PostgreSQL en el futuro)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: flight-bot-db
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: flight_bot
+  #     POSTGRES_USER: flight_user
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+
+  # Opcional: Redis para cache
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: flight-bot-redis
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+  #   volumes:
+  #     - redis_data:/data
+  #   ports:
+  #     - "6379:6379"
+
+# volumes:
+#   postgres_data:
+#   redis_data:
