@@ -85,3 +85,10 @@ coverage/
 # ESLint and Prettier cache
 .eslintcache
 .prettiercache
+
+# Archivos de desarrollo
+*-dev.db
+*-dev.log
+.env.development.local
+.env.test.local
+temp/
