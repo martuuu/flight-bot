@@ -1,0 +1,328 @@
+{
+  "designSystem": {
+    "name": "Flight App Design System",
+    "colorPalette": {
+      "primary": {
+        "purple": "#7C3AED",
+        "purpleDark": "#5B21B6",
+        "purpleLight": "#A855F7",
+        "purpleGradient": "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)"
+      },
+      "secondary": {
+        "orange": "#FB923C",
+        "orangeLight": "#FED7AA",
+        "blue": "#3B82F6",
+        "blueLight": "#DBEAFE",
+        "green": "#10B981",
+        "greenLight": "#D1FAE5",
+        "pink": "#EC4899",
+        "pinkLight": "#FCE7F3"
+      },
+      "neutral": {
+        "white": "#FFFFFF",
+        "gray50": "#F9FAFB",
+        "gray100": "#F3F4F6",
+        "gray200": "#E5E7EB",
+        "gray300": "#D1D5DB",
+        "gray400": "#9CA3AF",
+        "gray500": "#6B7280",
+        "gray600": "#4B5563",
+        "gray700": "#374151",
+        "gray800": "#1F2937",
+        "gray900": "#111827"
+      },
+      "backgrounds": {
+        "app": "#F9FAFB",
+        "card": "#FFFFFF",
+        "surface": "#FFFFFF",
+        "overlay": "rgba(0,0,0,0.5)"
+      }
+    },
+    "typography": {
+      "fontFamily": {
+        "primary": "SF Pro Display, system-ui, -apple-system, sans-serif",
+        "secondary": "SF Pro Text, system-ui, -apple-system, sans-serif"
+      },
+      "fontSizes": {
+        "xs": "12px",
+        "sm": "14px",
+        "base": "16px",
+        "lg": "18px",
+        "xl": "20px",
+        "2xl": "24px",
+        "3xl": "30px",
+        "4xl": "36px",
+        "5xl": "48px"
+      },
+      "fontWeights": {
+        "light": "300",
+        "regular": "400",
+        "medium": "500",
+        "semibold": "600",
+        "bold": "700",
+        "extrabold": "800"
+      },
+      "lineHeights": {
+        "tight": "1.25",
+        "normal": "1.5",
+        "relaxed": "1.75"
+      }
+    },
+    "spacing": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "12px",
+      "lg": "16px",
+      "xl": "20px",
+      "2xl": "24px",
+      "3xl": "32px",
+      "4xl": "40px",
+      "5xl": "48px",
+      "6xl": "64px"
+    },
+    "borderRadius": {
+      "none": "0",
+      "sm": "4px",
+      "md": "8px",
+      "lg": "12px",
+      "xl": "16px",
+      "2xl": "20px",
+      "3xl": "24px",
+      "full": "9999px"
+    },
+    "shadows": {
+      "none": "none",
+      "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+      "card": "0 4px 20px rgba(124, 58, 237, 0.15)"
+    },
+    "components": {
+      "buttons": {
+        "primary": {
+          "background": "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)",
+          "color": "#FFFFFF",
+          "padding": "12px 24px",
+          "borderRadius": "12px",
+          "fontSize": "16px",
+          "fontWeight": "600",
+          "shadow": "0 4px 12px rgba(124, 58, 237, 0.4)",
+          "hoverShadow": "0 8px 20px rgba(124, 58, 237, 0.6)"
+        },
+        "secondary": {
+          "background": "#FFFFFF",
+          "color": "#7C3AED",
+          "border": "1px solid #E5E7EB",
+          "padding": "12px 24px",
+          "borderRadius": "12px",
+          "fontSize": "16px",
+          "fontWeight": "600"
+        },
+        "ghost": {
+          "background": "transparent",
+          "color": "#6B7280",
+          "padding": "8px 16px",
+          "borderRadius": "8px",
+          "fontSize": "14px",
+          "fontWeight": "500"
+        }
+      },
+      "cards": {
+        "primary": {
+          "background": "#FFFFFF",
+          "borderRadius": "20px",
+          "padding": "20px",
+          "shadow": "0 4px 20px rgba(0, 0, 0, 0.08)",
+          "border": "1px solid #F3F4F6"
+        },
+        "hero": {
+          "background": "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)",
+          "borderRadius": "24px",
+          "padding": "24px",
+          "color": "#FFFFFF"
+        },
+        "destination": {
+          "background": "#FFFFFF",
+          "borderRadius": "16px",
+          "overflow": "hidden",
+          "shadow": "0 4px 12px rgba(0, 0, 0, 0.1)"
+        }
+      },
+      "inputs": {
+        "default": {
+          "background": "#F9FAFB",
+          "border": "1px solid #E5E7EB",
+          "borderRadius": "12px",
+          "padding": "12px 16px",
+          "fontSize": "16px",
+          "color": "#374151",
+          "focusBorder": "#7C3AED",
+          "focusShadow": "0 0 0 3px rgba(124, 58, 237, 0.1)"
+        },
+        "search": {
+          "background": "#FFFFFF",
+          "border": "1px solid #E5E7EB",
+          "borderRadius": "16px",
+          "padding": "12px 16px 12px 48px",
+          "fontSize": "16px",
+          "placeholder": "#9CA3AF",
+          "icon": "#6B7280"
+        }
+      },
+      "navigation": {
+        "tabBar": {
+          "background": "#FFFFFF",
+          "borderTop": "1px solid #F3F4F6",
+          "padding": "12px 0",
+          "activeColor": "#7C3AED",
+          "inactiveColor": "#9CA3AF"
+        },
+        "header": {
+          "background": "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)",
+          "color": "#FFFFFF",
+          "padding": "16px 20px",
+          "borderRadius": "0 0 24px 24px"
+        }
+      },
+      "badges": {
+        "primary": {
+          "background": "#7C3AED",
+          "color": "#FFFFFF",
+          "padding": "4px 12px",
+          "borderRadius": "20px",
+          "fontSize": "12px",
+          "fontWeight": "600"
+        },
+        "secondary": {
+          "background": "#F3F4F6",
+          "color": "#374151",
+          "padding": "4px 12px",
+          "borderRadius": "20px",
+          "fontSize": "12px",
+          "fontWeight": "500"
+        }
+      }
+    },
+    "layouts": {
+      "mobile": {
+        "maxWidth": "390px",
+        "padding": "20px",
+        "spacing": "16px"
+      },
+      "tablet": {
+        "maxWidth": "768px",
+        "padding": "24px",
+        "spacing": "20px"
+      },
+      "desktop": {
+        "maxWidth": "1200px",
+        "padding": "32px",
+        "spacing": "24px"
+      }
+    },
+    "animations": {
+      "duration": {
+        "fast": "150ms",
+        "normal": "300ms",
+        "slow": "500ms"
+      },
+      "easing": {
+        "easeIn": "cubic-bezier(0.4, 0, 1, 1)",
+        "easeOut": "cubic-bezier(0, 0, 0.2, 1)",
+        "easeInOut": "cubic-bezier(0.4, 0, 0.2, 1)"
+      }
+    },
+    "iconography": {
+      "style": "outline",
+      "strokeWidth": "2px",
+      "sizes": {
+        "sm": "16px",
+        "md": "20px",
+        "lg": "24px",
+        "xl": "32px"
+      }
+    }
+  },
+  "pageStructures": {
+    "splash": {
+      "layout": "centered",
+      "components": ["hero_card", "brand_logo"],
+      "background": "gradient_purple"
+    },
+    "onboarding": {
+      "layout": "vertical_stack",
+      "components": ["image_hero", "title", "description", "cta_button"],
+      "navigation": "dots_indicator"
+    },
+    "login": {
+      "layout": "form_centered",
+      "components": ["header_card", "input_email", "input_password", "checkbox_remember", "button_login", "social_login", "link_signup"],
+      "background": "white"
+    },
+    "home": {
+      "layout": "scroll_vertical",
+      "components": ["header_greeting", "search_bar", "category_tabs", "destinations_grid", "bottom_navigation"],
+      "background": "gray_50"
+    },
+    "search": {
+      "layout": "form_with_results",
+      "components": ["search_form", "filters", "results_list"],
+      "background": "white"
+    },
+    "booking": {
+      "layout": "multi_step",
+      "components": ["progress_indicator", "form_sections", "summary_card", "payment_section"],
+      "background": "gray_50"
+    },
+    "profile": {
+      "layout": "settings_list",
+      "components": ["header_profile", "menu_items", "action_buttons"],
+      "background": "white"
+    }
+  },
+  "componentPatterns": {
+    "cards": {
+      "destination_card": {
+        "structure": "image + overlay_text + badge",
+        "imageRatio": "4:3",
+        "overlayGradient": "linear-gradient(transparent, rgba(0,0,0,0.6))"
+      },
+      "booking_card": {
+        "structure": "header + content + actions",
+        "spacing": "consistent_16px",
+        "actionAlignment": "bottom_right"
+      },
+      "price_card": {
+        "structure": "price_large + details_small + cta_button",
+        "priceEmphasis": "large_bold_colored",
+        "detailsStyle": "muted_small"
+      }
+    },
+    "forms": {
+      "search_form": {
+        "structure": "location_inputs + date_picker + passenger_counter + submit",
+        "inputSpacing": "12px",
+        "submitStyle": "full_width_primary"
+      },
+      "filter_form": {
+        "structure": "sections_collapsible + range_sliders + checkboxes + apply_reset",
+        "sectionSpacing": "20px",
+        "actionLayout": "horizontal_split"
+      }
+    },
+    "navigation": {
+      "tab_bar": {
+        "items": 4,
+        "iconStyle": "outline",
+        "activeIndicator": "color_change",
+        "layout": "evenly_distributed"
+      },
+      "header": {
+        "style": "gradient_background",
+        "elements": "back_button + title + action_button",
+        "titleAlignment": "center"
+      }
+    }
+  }
+}

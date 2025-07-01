@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  phone     String?  // Para WhatsApp
+  password  String   // Hashed password
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  alerts                Alert[]
+  notificationSettings  NotificationSettings?
+  priceHistory         PriceHistory[]
+  
+  @@map("users")
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  userId      String
+  origin      String   // Código aeropuerto (ej: "BOG")
+  destination String   // Código aeropuerto (ej: "MIA")
+  maxPrice    Float    // Precio máximo deseado
+  currency    String   @default("USD")
+  
+  // Configuración de fechas
+  departureDate DateTime?
+  returnDate    DateTime?
+  isFlexible    Boolean   @default(true)
+  
+  // Configuración de pasajeros
+  adults        Int       @default(1)
+  children      Int       @default(0)
+  infants       Int       @default(0)
+  
+  // Estado de la alerta
+  isActive      Boolean   @default(true)
+  isPaused      Boolean   @default(false)
+  
+  // Metadatos
+  alertType     AlertType @default(SPECIFIC) // SPECIFIC, MONTHLY
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastChecked   DateTime?
+  
+  // Relaciones
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  priceHistory  PriceHistory[]
+  notifications AlertNotification[]
+  
+  @@map("alerts")
+}
+
+model PriceHistory {
+  id        String   @id @default(cuid())
+  alertId   String
+  userId    String
+  
+  // Datos del vuelo
+  price     Float
+  currency  String   @default("USD")
+  airline   String?
+  flightNumber String?
+  departureDate DateTime
+  returnDate    DateTime?
+  
+  // Detalles del precio
+  basePrice     Float?
+  taxes         Float?
+  fees          Float?
+  
+  // Metadatos
+  foundAt   DateTime @default(now())
+  source    String   @default("ARAJET") // ARAJET, LATAM, AVIANCA
+  
+  // Relaciones
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("price_history")
+}
+
+model NotificationSettings {
+  id       String @id @default(cuid())
+  userId   String @unique
+  
+  // Canales de notificación
+  whatsappEnabled Boolean @default(true)
+  emailEnabled    Boolean @default(false)
+  
+  // Configuración de frecuencia
+  instantNotifications Boolean @default(true)
+  dailyDigest         Boolean @default(false)
+  weeklyDigest        Boolean @default(false)
+  
+  // Configuración de filtros
+  minPriceDrop        Float?  // Notificar solo si baja más de X%
+  maxNotificationsDay Int     @default(5)
+  
+  // Metadatos
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relaciones
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notification_settings")
+}
+
+model AlertNotification {
+  id        String   @id @default(cuid())
+  alertId   String
+  userId    String
+  
+  // Datos de la notificación
+  type      NotificationType
+  channel   NotificationChannel
+  message   String
+  
+  // Estado
+  sent      Boolean  @default(false)
+  sentAt    DateTime?
+  delivered Boolean  @default(false)
+  
+  // Datos del precio que activó la notificación
+  price     Float?
+  currency  String?  @default("USD")
+  
+  // Metadatos
+  createdAt DateTime @default(now())
+  
+  // Relaciones
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  @@map("alert_notifications")
+}
+
+model Airport {
+  id        String @id @default(cuid())
+  code      String @unique // IATA code (ej: "BOG")
+  name      String         // Nombre completo
+  city      String         // Ciudad
+  country   String         // País
+  timezone  String?        // Timezone
+  
+  // Metadatos
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  
+  @@map("airports")
+}
+
+model PopularDestination {
+  id          String @id @default(cuid())
+  origin      String // Código aeropuerto
+  destination String // Código aeropuerto
+  
+  // Estadísticas
+  searchCount Int     @default(0)
+  alertCount  Int     @default(0)
+  avgPrice    Float?
+  
+  // Metadatos
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([origin, destination])
+  @@map("popular_destinations")
+}
+
+// Enums
+enum AlertType {
+  SPECIFIC  // Fecha específica
+  MONTHLY   // Análisis mensual
+}
+
+enum NotificationType {
+  PRICE_DROP
+  PRICE_ALERT
+  SYSTEM_UPDATE
+  WELCOME
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+  SMS
+}
