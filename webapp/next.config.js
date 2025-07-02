@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    // Disable ESLint during builds to avoid config conflicts
+    ignoreDuringBuilds: true,
+  },
   images: {
     domains: ['images.unsplash.com'],
   },

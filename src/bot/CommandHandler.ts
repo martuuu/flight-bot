@@ -40,7 +40,7 @@ export class CommandHandler {
     try {
       switch (command) {
         case '/start':
-          await this.handleStart(chatId, msg.from);
+          await this.handleStart(chatId, msg.from, args);
           break;
         case '/help':
           await this.handleHelp(chatId);
@@ -48,6 +48,10 @@ export class CommandHandler {
         case '/alert':
         case '/alertas':
           await this.handleCreateAlert(chatId, msg.from?.id, args);
+          break;
+        case '/addalert':
+        case '/agregaralerta':
+          await this.handleUnifiedAlert(chatId, msg.from?.id, args);
           break;
         case '/myalerts':
         case '/misalertas':
@@ -183,7 +187,7 @@ Te mostraré todos los vuelos disponibles en esa fecha.`;
   /**
    * Comando /start
    */
-  private async handleStart(chatId: number, user: any): Promise<void> {
+  private async handleStart(chatId: number, user: any, args: string[] = []): Promise<void> {
     if (user) {
       UserModel.findOrCreate(
         user.id,
@@ -191,6 +195,12 @@ Te mostraré todos los vuelos disponibles en esa fecha.`;
         user.first_name,
         user.last_name
       );
+
+      // Verificar si hay parámetros de autenticación desde webapp
+      if (args.length > 0 && args[0].startsWith('auth_')) {
+        await this.handleWebappAuth(chatId, user, args[0]);
+        return;
+      }
 
       const welcomeMessage = MessageFormatter.formatWelcomeMessage(user.first_name || user.username);
       
@@ -211,6 +221,67 @@ Te mostraré todos los vuelos disponibles en esa fecha.`;
       });
 
       botLogger.info('Usuario registrado/actualizado', { userId: user.id, username: user.username });
+    }
+  }
+
+  /**
+   * Manejar autenticación desde webapp
+   */
+  private async handleWebappAuth(chatId: number, user: any, authParam: string): Promise<void> {
+    try {
+      // Extraer datos de autenticación
+      const authData = authParam.replace('auth_', '');
+      const decodedData = JSON.parse(atob(authData));
+      
+      const { userId, userRole, userEmail, timestamp } = decodedData;
+      
+      // Verificar que el enlace no sea muy viejo (30 minutos)
+      const maxAge = 30 * 60 * 1000; // 30 minutos
+      if (Date.now() - timestamp > maxAge) {
+        await this.bot.sendMessage(chatId, '❌ Enlace de autenticación expirado. Genera uno nuevo desde la webapp.');
+        return;
+      }
+
+      // Aquí puedes implementar lógica de control de acceso basada en rol
+      const welcomeMessage = `🎉 ¡Bienvenido desde la webapp!
+
+👤 **Usuario**: ${userId}
+🏷️ **Rol**: ${userRole}
+📧 **Email**: ${userEmail || 'No proporcionado'}
+
+✅ Autenticación exitosa. Ahora puedes usar todos los comandos del bot.
+
+🚀 **Comandos disponibles:**
+• \`/addalert SDQ MIA\` - Crear alerta básica
+• \`/agregaralerta SDQ MIA 300\` - Alerta con precio máximo
+• \`/misalertas\` - Ver tus alertas
+• \`/help\` - Ver ayuda completa`;
+
+      await this.bot.sendMessage(chatId, welcomeMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '✈️ Crear Alerta', callback_data: 'help_alert' },
+              { text: '📋 Mis Alertas', callback_data: 'my_alerts' },
+            ],
+            [
+              { text: '🌐 Volver a Webapp', url: 'https://tu-webapp.com/dashboard' },
+            ],
+          ],
+        },
+      });
+
+      botLogger.info('Usuario autenticado desde webapp', { 
+        telegramUserId: user.id, 
+        webappUserId: userId, 
+        userRole, 
+        userEmail 
+      });
+
+    } catch (error) {
+      botLogger.error('Error procesando autenticación webapp', error as Error, { authParam });
+      await this.bot.sendMessage(chatId, '❌ Error procesando la autenticación. Contacta al soporte.');
     }
   }
 
@@ -719,7 +790,7 @@ Te mostraré todos los vuelos disponibles en esa fecha.`;
         searchMonth
       );
 
-      const successMessage = MessageFormatter.formatMonthlyAlertCreatedMessage(alert);
+      const successMessage = MessageFormatter.formatMonthlyAlertCreatedMessage(alert, false);
       
       await this.bot.sendMessage(chatId, successMessage, {
         parse_mode: 'Markdown',
@@ -1032,5 +1103,245 @@ Usa \`/buscar\` para ver la lista completa.
 ❓ *¿Dudas?* Usa \`/help\` en cualquier momento.`;
 
     await this.bot.sendMessage(chatId, guideMessage, { parse_mode: 'Markdown' });
+  }
+
+  /**
+   * Comando /addalert y /agregaralerta - Crear nueva alerta con sintaxis unificada
+   */
+  private async handleUnifiedAlert(chatId: number, userId: number, args: string[]): Promise<void> {
+    if (args.length < 2) {
+      const usageMessage = MessageFormatter.formatUnifiedAlertUsageMessage();
+      await this.bot.sendMessage(chatId, usageMessage, { parse_mode: 'Markdown' });
+      return;
+    }
+
+    try {
+      const parsedArgs = this.parseUnifiedAlertArgs(args);
+      
+      if (!parsedArgs.isValid) {
+        const usageMessage = MessageFormatter.formatUnifiedAlertUsageMessage();
+        await this.bot.sendMessage(chatId, `❌ ${parsedArgs.error}\n\n${usageMessage}`, { parse_mode: 'Markdown' });
+        return;
+      }
+
+      // Validar códigos de aeropuerto
+      const originCode = parsedArgs.origin.toUpperCase();
+      const destinationCode = parsedArgs.destination.toUpperCase();
+
+      if (!this.isValidAirport(originCode)) {
+        await this.bot.sendMessage(chatId, `❌ Código de aeropuerto de origen inválido: ${originCode}`);
+        return;
+      }
+
+      if (!this.isValidAirport(destinationCode)) {
+        await this.bot.sendMessage(chatId, `❌ Código de aeropuerto de destino inválido: ${destinationCode}`);
+        return;
+      }
+
+      if (originCode === destinationCode) {
+        await this.bot.sendMessage(chatId, '❌ El origen y destino no pueden ser iguales');
+        return;
+      }
+
+      const user = UserModel.findByTelegramId(userId);
+      if (!user) {
+        await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
+        return;
+      }
+
+      // Verificar límite de alertas
+      const alertCount = AlertModel.countActiveByUserId(user.id);
+      if (alertCount >= config.alerts.maxAlertsPerUser) {
+        await this.bot.sendMessage(
+          chatId,
+          `❌ Has alcanzado el límite máximo de ${config.alerts.maxAlertsPerUser} alertas activas`
+        );
+        return;
+      }
+
+      // Crear alerta según el tipo (diaria/mensual)
+      if (parsedArgs.isMonthly) {
+        await this.createMonthlyAlert(chatId, user.id, originCode, destinationCode, parsedArgs.maxPrice, parsedArgs.date, parsedArgs.trackBestOnly);
+      } else {
+        await this.createDailyAlert(chatId, user.id, originCode, destinationCode, parsedArgs.maxPrice, parsedArgs.date, parsedArgs.trackBestOnly);
+      }
+
+    } catch (error) {
+      botLogger.error('Error en comando unificado', error as Error, { userId, args });
+      await this.bot.sendMessage(chatId, '❌ Error procesando la alerta. Inténtalo de nuevo.');
+    }
+  }
+
+  /**
+   * Parsear argumentos de comando unificado
+   */
+  private parseUnifiedAlertArgs(args: string[]): {
+    isValid: boolean;
+    error?: string;
+    origin: string;
+    destination: string;
+    maxPrice: number | null;
+    date: string | null;
+    isMonthly: boolean;
+    trackBestOnly: boolean;
+  } {
+    const result = {
+      isValid: false,
+      origin: '',
+      destination: '',
+      maxPrice: null as number | null,
+      date: null as string | null,
+      isMonthly: false,
+      trackBestOnly: false,
+      error: ''
+    };
+
+    if (args.length < 2) {
+      result.error = 'Se requieren al menos origen y destino';
+      return result;
+    }
+
+    // Extraer origen y destino
+    result.origin = args[0];
+    result.destination = args[1];
+
+    // Procesar argumentos opcionales
+    for (let i = 2; i < args.length; i++) {
+      const arg = args[i];
+      
+      // Verificar si es precio o "mejor precio"
+      if (arg === '-') {
+        result.trackBestOnly = true;
+        result.maxPrice = null;
+      } else if (!isNaN(parseFloat(arg))) {
+        const price = parseFloat(arg);
+        if (price > 0) {
+          result.maxPrice = price;
+        } else {
+          result.error = 'El precio debe ser mayor a 0';
+          return result;
+        }
+      } else if (this.isDateFormat(arg)) {
+        result.date = arg;
+        // Determinar si es fecha mensual (YYYY-MM) o diaria (YYYY-MM-DD)
+        result.isMonthly = this.isMonthlyDate(arg);
+      } else {
+        result.error = `Argumento no reconocido: ${arg}`;
+        return result;
+      }
+    }
+
+    // Si no se especificó precio ni "-", establecer precio por defecto
+    if (result.maxPrice === null && !result.trackBestOnly) {
+      result.trackBestOnly = true; // Por defecto buscar el mejor precio
+    }
+
+    result.isValid = true;
+    return result;
+  }
+
+  /**
+   * Verificar si una cadena es formato de fecha válido
+   */
+  private isDateFormat(dateStr: string): boolean {
+    // Formato YYYY-MM o YYYY-MM-DD
+    const monthlyPattern = /^\d{4}-\d{2}$/;
+    const dailyPattern = /^\d{4}-\d{2}-\d{2}$/;
+    
+    if (!monthlyPattern.test(dateStr) && !dailyPattern.test(dateStr)) {
+      return false;
+    }
+
+    // Validar que sea una fecha real
+    const date = new Date(dateStr + (monthlyPattern.test(dateStr) ? '-01' : ''));
+    return !isNaN(date.getTime());
+  }
+
+  /**
+   * Verificar si es fecha mensual (YYYY-MM)
+   */
+  private isMonthlyDate(dateStr: string): boolean {
+    return /^\d{4}-\d{2}$/.test(dateStr);
+  }
+
+  /**
+   * Crear alerta diaria
+   */
+  private async createDailyAlert(chatId: number, userId: number, origin: string, destination: string, maxPrice: number | null, _date: string | null, trackBestOnly: boolean): Promise<void> {
+    try {
+      // Verificar alerta duplicada
+      const duplicate = AlertModel.findDuplicate(userId, origin, destination);
+      if (duplicate) {
+        await this.bot.sendMessage(
+          chatId,
+          `⚠️ Ya tienes una alerta activa para la ruta ${origin} → ${destination}`
+        );
+        return;
+      }
+
+      // Crear alerta usando el sistema legacy
+      const alert = AlertModel.create(userId, origin, destination, maxPrice || 999999);
+
+      const successMessage = MessageFormatter.formatAlertCreatedMessage(alert);
+      
+      await this.bot.sendMessage(chatId, successMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '📋 Mis Alertas', callback_data: 'my_alerts' },
+              { text: '✈️ Nueva Alerta', callback_data: 'help_alert' },
+            ],
+          ],
+        },
+      });
+
+      botLogger.info('Alerta diaria creada', { userId, alertId: alert.id, route: `${origin}-${destination}`, trackBestOnly, maxPrice });
+
+    } catch (error) {
+      botLogger.error('Error creando alerta diaria', error as Error, { userId, origin, destination });
+      await this.bot.sendMessage(chatId, '❌ Error creando la alerta. Inténtalo de nuevo.');
+    }
+  }
+
+  /**
+   * Crear alerta mensual
+   */
+  private async createMonthlyAlert(chatId: number, userId: number, origin: string, destination: string, maxPrice: number | null, date: string | null, trackBestOnly: boolean): Promise<void> {
+    try {
+      // Usar el sistema de AlertManager para alertas mensuales
+      const targetMonth = date || new Date().toISOString().slice(0, 7); // YYYY-MM format
+      
+      // Para AlertManager necesitamos los parámetros específicos
+      const alert = this.alertManager.createAlert(
+        userId,
+        chatId,
+        origin,
+        destination,
+        maxPrice || 999999,
+        [], // passengers array - vacío por ahora
+        targetMonth
+      );
+
+      const successMessage = MessageFormatter.formatMonthlyAlertCreatedMessage(alert, trackBestOnly);
+      
+      await this.bot.sendMessage(chatId, successMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '📋 Mis Alertas', callback_data: 'my_alerts' },
+              { text: '✈️ Nueva Alerta', callback_data: 'help_alert' },
+            ],
+          ],
+        },
+      });
+
+      botLogger.info('Alerta mensual creada', { userId, alertId: alert.id, route: `${origin}-${destination}`, month: date, trackBestOnly, maxPrice });
+
+    } catch (error) {
+      botLogger.error('Error creando alerta mensual', error as Error, { userId, origin, destination });
+      await this.bot.sendMessage(chatId, '❌ Error creando la alerta. Inténtalo de nuevo.');
+    }
   }
 }

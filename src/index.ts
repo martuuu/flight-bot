@@ -1,3 +1,4 @@
+import 'module-alias/register';
 import { FlightBot } from '@/bot';
 import { ScheduleManager } from '@/services';
 import { validateConfig } from '@/config';

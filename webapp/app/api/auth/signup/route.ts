@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import bcrypt from 'bcryptjs'
+import { PrismaClient } from '@prisma/client'
+import { sendVerificationEmail } from '@/lib/email'
+import crypto from 'crypto'
 
-// Mock user storage (in production, use a real database)
-const users: Array<{
-  id: string
-  name: string
-  email: string
-  phone: string
-  password: string
-  createdAt: Date
-}> = []
+const prisma = new PrismaClient()
 
 const signupSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(10),
-  password: z.string().min(8),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email'),
+  phone: z.string().min(10, 'Please enter a valid phone number'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 })
 
 export async function POST(request: NextRequest) {
@@ -24,7 +20,9 @@ export async function POST(request: NextRequest) {
     const { name, email, phone, password } = signupSchema.parse(body)
 
     // Check if user already exists
-    const existingUser = users.find(user => user.email === email)
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    })
 
     if (existingUser) {
       return NextResponse.json(
@@ -33,24 +31,52 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create user (in production, hash the password)
-    const user = {
-      id: Date.now().toString(),
-      name,
-      email,
-      phone,
-      password, // In production, hash this
-      createdAt: new Date(),
-    }
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12)
 
-    users.push(user)
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex')
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
+    // Create user with proper role and subscription defaults
+    const superadmin = await prisma.user.findFirst({
+      where: { role: 'SUPERADMIN' }
+    })
+    
+    // If no superadmin exists, make the first user a SUPERADMIN
+    const role = !superadmin ? 'SUPERADMIN' : 'BASIC'
+    
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        phone,
+        password: hashedPassword,
+        role,
+        emailVerified: null,
+        verificationToken,
+        verificationExpires,
+        subscriptionStatus: 'ACTIVE',
+        subscriptionPlan: role === 'SUPERADMIN' ? 'PREMIUM' : 'BASIC',
+        subscriptionExpires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+      }
+    })
+
+    // Send verification email
+    try {
+      await sendVerificationEmail(email, verificationToken)
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError)
+      // Continue with user creation even if email fails
+    }
 
     // Return user without password
     const { password: _, ...userWithoutPassword } = user
 
     return NextResponse.json({
-      message: 'User created successfully',
-      user: userWithoutPassword
+      message: 'User created successfully. Please check your email to verify your account.',
+      user: userWithoutPassword,
+      needsVerification: true
     }, { status: 201 })
 
   } catch (error) {
@@ -61,10 +87,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Handle Prisma errors
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      return NextResponse.json(
+        { message: 'User already exists with this email' },
+        { status: 400 }
+      )
+    }
+
     console.error('Signup error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
     )
+  } finally {
+    await prisma.$disconnect()
   }
 }

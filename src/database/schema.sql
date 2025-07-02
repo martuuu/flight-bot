@@ -51,6 +51,55 @@ CREATE TABLE IF NOT EXISTS price_history (
     stops INTEGER DEFAULT 0
 );
 
+-- Tabla de detalles completos de vuelos
+CREATE TABLE IF NOT EXISTS flight_details (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    flight_number TEXT NOT NULL,
+    airline TEXT NOT NULL,
+    origin TEXT NOT NULL,
+    destination TEXT NOT NULL,
+    departure_date DATE NOT NULL,
+    arrival_date DATE NOT NULL,
+    departure_time TEXT NOT NULL,
+    arrival_time TEXT NOT NULL,
+    duration TEXT NOT NULL,
+    aircraft TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    currency TEXT DEFAULT 'USD',
+    cabin_class TEXT DEFAULT 'economy',
+    available_seats INTEGER,
+    
+    -- Información adicional en JSON
+    taxes TEXT, -- JSON con impuestos (security, service, government, total)
+    fees TEXT, -- JSON con tasas (booking, processing, total)  
+    restrictions TEXT, -- JSON con restricciones (refundable, changeable, notes)
+    baggage TEXT, -- JSON con información de equipaje
+    amenities TEXT, -- JSON array con amenidades
+    
+    -- Servicios incluidos
+    meal TEXT,
+    wifi BOOLEAN DEFAULT 0,
+    entertainment BOOLEAN DEFAULT 0,
+    
+    -- Información de conexiones
+    stops INTEGER DEFAULT 0,
+    layovers TEXT, -- JSON array con escalas
+    
+    -- Metadatos
+    booking_class TEXT,
+    fare_type TEXT,
+    validating_carrier TEXT,
+    
+    -- Historial y datos
+    price_history TEXT, -- JSON array con historial de precios
+    raw_api_data TEXT, -- JSON con datos completos de la API
+    search_timestamp TEXT NOT NULL,
+    last_updated TEXT NOT NULL,
+    
+    -- Índices únicos
+    UNIQUE(flight_number, departure_date, origin, destination)
+);
+
 -- Tabla de notificaciones enviadas
 CREATE TABLE IF NOT EXISTS notifications_sent (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,6 +142,13 @@ CREATE INDEX IF NOT EXISTS idx_price_history_route_date ON price_history(origin,
 CREATE INDEX IF NOT EXISTS idx_price_history_scraped ON price_history(scraped_at);
 CREATE INDEX IF NOT EXISTS idx_notifications_alert ON notifications_sent(alert_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_sent_date ON notifications_sent(sent_at);
+
+-- Índices para flight_details
+CREATE INDEX IF NOT EXISTS idx_flight_details_route ON flight_details(origin, destination);
+CREATE INDEX IF NOT EXISTS idx_flight_details_date ON flight_details(departure_date);
+CREATE INDEX IF NOT EXISTS idx_flight_details_flight ON flight_details(flight_number, departure_date);
+CREATE INDEX IF NOT EXISTS idx_flight_details_updated ON flight_details(last_updated);
+CREATE INDEX IF NOT EXISTS idx_flight_details_price ON flight_details(price, currency);
 
 -- Insertar configuración inicial del sistema
 INSERT OR IGNORE INTO system_config (key, value, description) VALUES

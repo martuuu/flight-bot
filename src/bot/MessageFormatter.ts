@@ -11,9 +11,9 @@ export class MessageFormatter {
 • \`/start\` - Iniciar el bot y registrarse
 • \`/help\` - Mostrar esta ayuda
 
-✈️ *Alertas de Vuelos:*
-• \`/alertas\` - Crear alerta normal de precios
-• \`/monthlyalert\` - Crear alerta mensual automática
+✈️ *Alertas de Vuelos (UNIFICADO):*
+• \`/addalert\` - Crear alerta de vuelos (sistema unificado)
+• \`/agregaralerta\` - Crear alerta de vuelos (español)
 • \`/misalertas\` - Ver todas tus alertas activas
 • \`/cancelar <ID>\` - Cancelar alerta específica
 • \`/clearall\` - Eliminar todas las alertas
@@ -24,30 +24,57 @@ export class MessageFormatter {
 💡 *Funciones Especiales:*
 • Chequeo inmediato de alertas desde \`/misalertas\`
 • Pausar/reactivar alertas individualmente
-• Verificación automática cada 5 minutos
+• Verificación automática cada hora
 
-*Ejemplos de uso:*
+*📋 Ejemplos de Alertas:*
 
-📍 *Alerta Normal:*
-\`/alertas EZE MIA 300\`
+🏷️ *Precio máximo específico:*
+\`/addalert EZE PUJ 800 2026-02-15\` (día)
+\`/addalert EZE PUJ 800 2026-02\` (mes)
 
-📅 *Alerta Mensual:*
-\`/monthlyalert STI PUJ 210 2026-02\`
+🏆 *Mejor precio disponible:*
+\`/addalert EZE PUJ - 2026-02-15\` (día)
+\`/addalert EZE PUJ - 2026-02\` (mes)
 
-*Aeropuertos principales disponibles:*
+*Aeropuertos disponibles:*
 
-🇺🇸 *Estados Unidos:* MIA, ORD, BOS, EWR, SFB
-🇦🇷 *Argentina:* EZE
-🇨🇱 *Chile:* SCL
-🇨🇴 *Colombia:* BOG, MDE, CTG
+🇺🇸 *Estados Unidos:* MIA, ORD, BOS, EWR, SFB, LAX, JFK, ATL, DFW, LAS, SEA, SFO
+��🇦 *Canadá:* YYZ, YVR, YUL
+�🇽 *México:* MEX, CUN, GDL
+
 🇩🇴 *Rep. Dominicana:* PUJ, SDQ, STI
-🇲🇽 *México:* CUN, NLU
-🇨🇦 *Canadá:* YUL, YYZ
+�� *Puerto Rico:* SJU
 🇯🇲 *Jamaica:* KIN
-🇵🇷 *Puerto Rico:* SJU
-🇬🇹 *Guatemala:* GUA
+🇨🇺 *Cuba:* HAV
+�🇼 *Aruba:* AUA
+�🇨� *Curaçao:* CUR
+
+🇨�🇴 *Colombia:* BOG, MDE, CTG, CLO, BAQ, SMR
+�� *Argentina:* EZE, AEP, COR, MDZ
+🇧🇷 *Brasil:* GRU, GIG, BSB, SDU, CGH
+🇨🇱 *Chile:* SCL
+🇵🇪 *Perú:* LIM, CUZ
+�� *Ecuador:* UIO, GYE
+�� *Venezuela:* CCS
+🇺🇾 *Uruguay:* MVD
+�� *Paraguay:* ASU
+
+🇵🇦 *Panamá:* PTY
 🇨🇷 *Costa Rica:* SJO
-🇸🇻 *El Salvador:* SAL
+🇬🇹 *Guatemala:* GUA
+
+🇪🇸 *España:* MAD, BCN
+�🇷 *Francia:* CDG, ORY
+🇬🇧 *Reino Unido:* LHR, LGW
+🇩🇪 *Alemania:* FRA, MUC
+🇮🇹 *Italia:* FCO, MXP
+🇳🇱 *Países Bajos:* AMS
+
+🇯🇵 *Japón:* NRT, HND
+🇨🇳 *China:* PEK, PVG
+🇸🇬 *Singapur:* SIN
+🇦� *UAE:* DXB
+🇦🇺 *Australia:* SYD, MEL
 
 ¡Usa los botones interactivos para navegación rápida!`;
   }
@@ -100,6 +127,42 @@ Te notificaré cuando encuentre vuelos por debajo del precio especificado.`;
 El bot buscará ofertas en todo el mes especificado y te notificará cuando encuentre vuelos por debajo del precio.`;
   }
 
+  // Usage message for unified alert command
+  static formatUnifiedAlertUsageMessage(): string {
+    return `📋 *Comando /addalert y /agregaralerta* - Sistema Unificado de Alertas
+
+*🎯 Tipos de Alerta:*
+
+*1️⃣ Día Específico con Precio Máximo:*
+\`/addalert ORIGEN DESTINO PRECIO FECHA\`
+Ejemplo: \`/addalert EZE PUJ 800 2026-02-15\`
+
+*2️⃣ Día Específico - Mejor Precio:*
+\`/addalert ORIGEN DESTINO - FECHA\`
+Ejemplo: \`/addalert EZE PUJ - 2026-02-15\`
+Te notificará del mejor precio disponible ese día.
+
+*3️⃣ Mes Completo con Precio Máximo:*
+\`/addalert ORIGEN DESTINO PRECIO MES\`
+Ejemplo: \`/addalert EZE PUJ 800 2026-02\`
+
+*4️⃣ Mes Completo - Mejores Ofertas:*
+\`/addalert ORIGEN DESTINO - MES\`
+Ejemplo: \`/addalert EZE PUJ - 2026-02\`
+Te enviará las 5 mejores ofertas del mes.
+
+*📅 Formatos de Fecha:*
+• Día específico: \`YYYY-MM-DD\` (ej: 2026-02-15)
+• Mes completo: \`YYYY-MM\` (ej: 2026-02)
+• Sin fecha: Busca en el mes actual
+
+*✨ Características:*
+🔔 Notificaciones automáticas cada hora
+📊 Análisis inteligente de precios
+⚡ Chequeo inmediato disponible
+🛑 Fácil gestión desde /misalertas`;
+  }
+
   // Welcome message
   static formatWelcomeMessage(userName: string): string {
     return `¡Hola ${userName}! 👋
@@ -129,18 +192,45 @@ Usa los botones de abajo o escribe \`/help\` para ver todos los comandos.`;
 📱 Usa \`/misalertas\` para ver todas tus alertas.`;
   }
 
-  // Monthly alert created message
-  static formatMonthlyAlertCreatedMessage(alert: any): string {
-    return `✅ *Alerta mensual creada exitosamente*
+  // Daily alert created message
+  static formatDailyAlertCreatedMessage(alert: any, trackBestOnly: boolean, searchDate?: string): string {
+    const alertType = trackBestOnly ? '🏆 Mejor Precio' : '💰 Precio Máximo';
+    const priceInfo = trackBestOnly ? 'cualquier precio' : `máx $${alert.maxPrice} USD`;
+    
+    return `✅ *Alerta Diaria Creada*
+
+📍 Ruta: ${alert.origin} → ${alert.destination}
+📅 Fecha: ${searchDate || 'Próximas fechas'}
+${alertType}: ${priceInfo}
+🆔 ID: ${alert.id}
+
+${trackBestOnly 
+  ? '🔔 Te notificaré del mejor precio disponible para esa fecha.'
+  : '🔔 Te notificaré si encuentro vuelos por debajo del precio máximo.'
+}
+
+📱 Gestiona esta alerta desde /misalertas`;
+  }
+
+  // Enhanced monthly alert created message
+  static formatMonthlyAlertCreatedMessage(alert: any, trackBestOnly: boolean): string {
+    const alertType = trackBestOnly ? '🏆 Mejores Ofertas' : '💰 Precio Máximo';
+    const priceInfo = trackBestOnly ? 'Top 5 ofertas' : `máx $${alert.maxPrice} USD`;
+    
+    return `✅ *Alerta Mensual Creada*
 
 📍 Ruta: ${alert.fromAirport} → ${alert.toAirport}
 📅 Mes: ${alert.searchMonth}
-💰 Precio máximo: $${alert.maxPrice} USD
-🆔 ID de alerta: ${alert.id}
+${alertType}: ${priceInfo}
+🆔 ID: ${alert.id}
 
-🔔 Buscaré ofertas en todo el mes especificado.
-📱 Usa \`/misalertas\` para ver todas tus alertas.
-🔍 Puedes hacer un chequeo inmediato desde \`/misalertas\`.`;
+${trackBestOnly 
+  ? '🔔 Te enviaré las 5 mejores ofertas encontradas en todo el mes.'
+  : '🔔 Te notificaré de todas las ofertas por debajo del precio máximo.'
+}
+
+📱 Gestiona esta alerta desde /misalertas
+🔍 Haz un chequeo inmediato desde /misalertas`;
   }
 
   // My alerts message (compatibility wrapper)
@@ -235,5 +325,219 @@ Usa los botones de abajo o escribe \`/help\` para ver todos los comandos.`;
 🕐 ${alertData.departureTime} → ${alertData.arrivalTime}
 
 ¡Aprovecha esta oferta!`;
+  }
+
+  /**
+   * Formatea información detallada de un vuelo con todos los datos de la API
+   */
+  static formatDetailedFlightInfo(flight: any, alert: any): string {
+    let message = `✈️ *INFORMACIÓN DETALLADA DEL VUELO*\n\n`;
+    
+    // Información básica del vuelo
+    message += `🛫 *Ruta:* ${alert.fromAirport} → ${alert.toAirport}\n`;
+    message += `📅 *Fecha:* ${this.formatDetailedDate(flight.date)}\n`;
+    message += `🆔 *Vuelo:* ${flight.legs?.[0]?.flightNumber || 'N/A'}\n`;
+    message += `✈️ *Aerolínea:* ${flight.legs?.[0]?.carrierCode || 'Arajet'}\n\n`;
+    
+    // Información de horarios
+    message += `🕐 *HORARIOS:*\n`;
+    if (flight.legs?.[0]) {
+      const leg = flight.legs[0];
+      message += `  🛫 Salida: ${this.formatDetailedTime(leg.departureDate)}\n`;
+      message += `  🛬 Llegada: ${this.formatDetailedTime(leg.arrivalDate)}\n`;
+      message += `  ⏱️ Duración: ${this.formatFlightDuration(leg.flightTime)}\n`;
+    }
+    message += `\n`;
+    
+    // Información de precios
+    message += `💰 *PRECIOS:*\n`;
+    message += `  💵 Precio por pasajero: $${flight.pricePerPassenger} USD\n`;
+    message += `  💸 Precio sin impuestos: $${flight.pricePerPassengerWithoutTax} USD\n`;
+    message += `  📊 Impuestos: $${(flight.pricePerPassenger - flight.pricePerPassengerWithoutTax).toFixed(2)} USD\n`;
+    
+    if (flight.isCheapestOfMonth) {
+      message += `  🥇 *¡Precio más bajo del mes!*\n`;
+    }
+    message += `\n`;
+    
+    // Información de la clase de servicio
+    message += `🎫 *CLASE DE SERVICIO:*\n`;
+    message += `  📋 Clase: ${flight.fareClass || 'Economy'}\n`;
+    message += `  🔤 Código tarifario: ${flight.fareBasisCode || 'N/A'}\n\n`;
+    
+    // Información del equipo
+    if (flight.legs?.[0]?.equipmentType) {
+      message += `✈️ *AERONAVE:*\n`;
+      message += `  🛩️ Tipo: ${flight.legs[0].equipmentType}\n\n`;
+    }
+    
+    // Estado de disponibilidad
+    message += `📊 *DISPONIBILIDAD:*\n`;
+    message += `  ${flight.isSoldOut ? '❌ Agotado' : '✅ Disponible'}\n`;
+    
+    // Información adicional si está disponible
+    if (flight.legs?.[0]?.throughCheckinAllowed !== undefined) {
+      message += `  🧳 Check-in directo: ${flight.legs[0].throughCheckinAllowed ? 'Sí' : 'No'}\n`;
+    }
+    
+    if (flight.legs?.[0]?.stopoverTime && flight.legs[0].stopoverTime > 0) {
+      message += `  ⏳ Tiempo de escala: ${this.formatStopoverTime(flight.legs[0].stopoverTime)}\n`;
+    }
+    
+    message += `\n📱 Usa los botones de abajo para gestionar esta alerta.`;
+    
+    return message;
+  }
+
+  /**
+   * Formatea duración de vuelo en minutos a horas y minutos
+   */
+  private static formatFlightDuration(minutes: number): string {
+    if (!minutes) return 'N/A';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  }
+
+  /**
+   * Formatea tiempo de escala
+   */
+  private static formatStopoverTime(minutes: number): string {
+    if (!minutes) return 'N/A';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    }
+    return `${mins}m`;
+  }
+
+  /**
+   * Formatea fecha con más detalle
+   */
+  private static formatDetailedDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  /**
+   * Formatea hora con más detalle
+   */
+  private static formatDetailedTime(dateTimeString: string): string {
+    const date = new Date(dateTimeString);
+    return date.toLocaleString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+  }
+
+  /**
+   * Formatea una fecha para mostrar
+   */
+  static formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short'
+    });
+  }
+
+  /**
+   * Formatea una hora para mostrar
+   */
+  static formatTime(dateTimeString: string): string {
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  /**
+   * Formatea mensaje de alerta con detalles completos del vuelo
+   */
+  static formatEnhancedAlertNotification(alert: any, deals: any[]): string {
+    if (deals.length === 0) {
+      return `🔍 No se encontraron ofertas para ${alert.fromAirport} → ${alert.toAirport} en ${alert.searchMonth} por debajo de $${alert.maxPrice}`;
+    }
+
+    // Ordenar por precio
+    const sortedDeals = deals.sort((a: any, b: any) => a.price - b.price);
+    const cheapest = sortedDeals[0];
+
+    let message = `🎉 *¡${deals.length} OFERTAS ENCONTRADAS!*\n\n`;
+    
+    // Información de la ruta y búsqueda
+    message += `✈️ *RUTA:* ${alert.fromAirport} → ${alert.toAirport}\n`;
+    message += `📅 *Período:* ${alert.searchMonth}\n`;
+    message += `💰 *Presupuesto máximo:* $${alert.maxPrice} USD\n`;
+    message += `👥 *Pasajeros:* ${this.formatPassengerInfo(alert.passengers)}\n\n`;
+
+    // Mejor oferta destacada
+    message += `🏆 *MEJOR OFERTA:*\n`;
+    message += `📅 ${this.formatDetailedDate(cheapest.date)}\n`;
+    message += `💵 $${cheapest.price} USD ${cheapest.isCheapestOfMonth ? '🥇' : ''}\n`;
+    message += `💸 Sin impuestos: $${cheapest.priceWithoutTax} USD\n`;
+    message += `✈️ Vuelo ${cheapest.flightNumber}\n`;
+    message += `🕐 ${this.formatDetailedTime(cheapest.departureTime)} → ${this.formatDetailedTime(cheapest.arrivalTime)}\n`;
+    message += `🎫 Clase: ${cheapest.fareClass}\n\n`;
+
+    // Top ofertas
+    if (deals.length > 1) {
+      const nextDeals = sortedDeals.slice(1, 4); // Próximas 3 ofertas
+      message += `📋 *TOP OFERTAS ADICIONALES:*\n`;
+      
+      nextDeals.forEach((deal: any, index: number) => {
+        message += `${index + 2}. 📅 ${this.formatDate(deal.date)} - 💵 $${deal.price}${deal.isCheapestOfMonth ? ' 🥇' : ''}\n`;
+        message += `   ✈️ ${deal.flightNumber} | 🕐 ${this.formatTime(deal.departureTime)} → ${this.formatTime(deal.arrivalTime)}\n`;
+        message += `   🎫 ${deal.fareClass} | 💸 $${deal.priceWithoutTax} s/imp.\n\n`;
+      });
+
+      if (deals.length > 4) {
+        message += `... y ${deals.length - 4} ofertas más disponibles\n\n`;
+      }
+    }
+
+    // Información adicional
+    message += `📊 *RESUMEN DEL MES:*\n`;
+    const prices = deals.map((d: any) => d.price);
+    const avgPrice = Math.round(prices.reduce((a: number, b: number) => a + b, 0) / prices.length);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    
+    message += `💰 Precio promedio: $${avgPrice}\n`;
+    message += `📉 Precio mínimo: $${minPrice}\n`;
+    message += `📈 Precio máximo: $${maxPrice}\n`;
+    message += `📅 Mejor día: ${this.formatDate(cheapest.date)}\n\n`;
+
+    message += `🔄 Actualizado: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Santiago' })}`;
+    message += `\n💡 Toca cualquier oferta para ver detalles completos`;
+
+    return message;
+  }
+
+  /**
+   * Formatea información de pasajeros
+   */
+  private static formatPassengerInfo(passengers: any[]): string {
+    if (!passengers || passengers.length === 0) return '1 adulto';
+    
+    const adults = passengers.find(p => p.code === 'ADT')?.count || 0;
+    const children = passengers.find(p => p.code === 'CHD')?.count || 0;
+    const infants = passengers.find(p => p.code === 'INF')?.count || 0;
+    
+    const parts = [];
+    if (adults > 0) parts.push(`${adults} adulto${adults > 1 ? 's' : ''}`);
+    if (children > 0) parts.push(`${children} niño${children > 1 ? 's' : ''}`);
+    if (infants > 0) parts.push(`${infants} bebé${infants > 1 ? 's' : ''}`);
+    
+    return parts.join(', ');
   }
 }

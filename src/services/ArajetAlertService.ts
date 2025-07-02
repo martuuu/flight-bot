@@ -219,9 +219,10 @@ export class ArajetAlertService {
   }
 
   /**
-   * Formatea un mensaje de alerta para Telegram
+   * Formatea un mensaje de alerta para Telegram usando el nuevo formato mejorado
    */
   formatAlertMessage(alert: FlightAlert, deals: FlightDeal[]): string {
+    // Usar la función estática de MessageFormatter directamente
     if (deals.length === 0) {
       return `🔍 No se encontraron ofertas para ${alert.fromAirport} → ${alert.toAirport} en ${alert.searchMonth} por debajo de $${alert.maxPrice}`;
     }
@@ -230,42 +231,92 @@ export class ArajetAlertService {
     const sortedDeals = deals.sort((a, b) => a.price - b.price);
     const cheapest = sortedDeals[0];
 
-    let message = `🎉 *¡${deals.length} ofertas encontradas!*\n\n`;
-    message += `✈️ ${alert.fromAirport} → ${alert.toAirport}\n`;
-    message += `📅 Mes: ${alert.searchMonth}\n`;
-    message += `💰 Presupuesto máximo: $${alert.maxPrice}\n\n`;
+    let message = `🎉 *¡${deals.length} OFERTAS ENCONTRADAS!*\n\n`;
+    
+    // Información de la ruta y búsqueda
+    message += `✈️ *RUTA:* ${alert.fromAirport} → ${alert.toAirport}\n`;
+    message += `📅 *Período:* ${alert.searchMonth}\n`;
+    message += `💰 *Presupuesto máximo:* $${alert.maxPrice} USD\n`;
+    message += `👥 *Pasajeros:* ${this.formatPassengerInfo(alert.passengers)}\n\n`;
 
+    // Mejor oferta destacada
     message += `🏆 *MEJOR OFERTA:*\n`;
-    message += `📅 ${this.formatDate(cheapest.date)}\n`;
-    message += `💵 $${cheapest.price} USD${cheapest.isCheapestOfMonth ? ' 🥇' : ''}\n`;
+    message += `📅 ${this.formatDetailedDate(cheapest.date)}\n`;
+    message += `💵 $${cheapest.price} USD ${cheapest.isCheapestOfMonth ? '🥇' : ''}\n`;
+    message += `💸 Sin impuestos: $${cheapest.priceWithoutTax} USD\n`;
     message += `✈️ Vuelo ${cheapest.flightNumber}\n`;
-    message += `🕐 ${this.formatTime(cheapest.departureTime)} → ${this.formatTime(cheapest.arrivalTime)}\n\n`;
+    message += `🕐 ${this.formatDetailedTime(cheapest.departureTime)} → ${this.formatDetailedTime(cheapest.arrivalTime)}\n`;
+    message += `🎫 Clase: ${cheapest.fareClass}\n\n`;
 
-    // Mostrar hasta 5 ofertas adicionales
+    // Top ofertas
     if (deals.length > 1) {
-      const nextDeals = sortedDeals.slice(1, 6); // Próximas 5 ofertas
-      message += `📋 *Top ${Math.min(5, deals.length)} ofertas:*\n`;
+      const nextDeals = sortedDeals.slice(1, 4); // Próximas 3 ofertas
+      message += `📋 *TOP OFERTAS ADICIONALES:*\n`;
       
       nextDeals.forEach((deal, index) => {
-        message += `${index + 2}. ${this.formatDate(deal.date)} - $${deal.price}${deal.isCheapestOfMonth ? ' 🥇' : ''}\n`;
-        message += `   ✈️ ${deal.flightNumber} | ${this.formatTime(deal.departureTime)} → ${this.formatTime(deal.arrivalTime)}\n`;
+        message += `${index + 2}. 📅 ${this.formatSimpleDate(deal.date)} - 💵 $${deal.price}${deal.isCheapestOfMonth ? ' 🥇' : ''}\n`;
+        message += `   ✈️ ${deal.flightNumber} | 🕐 ${this.formatSimpleTime(deal.departureTime)} → ${this.formatSimpleTime(deal.arrivalTime)}\n`;
+        message += `   🎫 ${deal.fareClass} | 💸 $${deal.priceWithoutTax} s/imp.\n\n`;
       });
 
-      if (deals.length > 6) {
-        message += `\n... y ${deals.length - 6} ofertas más disponibles\n`;
+      if (deals.length > 4) {
+        message += `... y ${deals.length - 4} ofertas más disponibles\n\n`;
       }
     }
 
-    message += `\n🔄 Actualizado: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Santiago' })}`;
+    // Información adicional
+    message += `📊 *RESUMEN DEL MES:*\n`;
+    const prices = deals.map(d => d.price);
+    const avgPrice = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    
+    message += `💰 Precio promedio: $${avgPrice}\n`;
+    message += `📉 Precio mínimo: $${minPrice}\n`;
+    message += `📈 Precio máximo: $${maxPrice}\n`;
+    message += `📅 Mejor día: ${this.formatSimpleDate(cheapest.date)}\n\n`;
+
+    message += `🔄 Actualizado: ${new Date().toLocaleString('es-ES', { timeZone: 'America/Santiago' })}`;
     message += `\n💡 Usa /misalertas para gestionar tus alertas`;
 
     return message;
   }
 
   /**
-   * Formatea una fecha para mostrar
+   * Formatea información de pasajeros
    */
-  private formatDate(dateString: string): string {
+  private formatPassengerInfo(passengers: ArajetPassenger[]): string {
+    if (!passengers || passengers.length === 0) return '1 adulto';
+    
+    const adults = passengers.find(p => p.code === 'ADT')?.count || 0;
+    const children = passengers.find(p => p.code === 'CHD')?.count || 0;
+    const infants = passengers.find(p => p.code === 'INF')?.count || 0;
+    
+    const parts = [];
+    if (adults > 0) parts.push(`${adults} adulto${adults > 1 ? 's' : ''}`);
+    if (children > 0) parts.push(`${children} niño${children > 1 ? 's' : ''}`);
+    if (infants > 0) parts.push(`${infants} bebé${infants > 1 ? 's' : ''}`);
+    
+    return parts.join(', ');
+  }
+
+  /**
+   * Formatea fecha con más detalle
+   */
+  private formatDetailedDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  /**
+   * Formatea fecha simple
+   */
+  private formatSimpleDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
       weekday: 'short',
@@ -275,9 +326,21 @@ export class ArajetAlertService {
   }
 
   /**
-   * Formatea una hora para mostrar
+   * Formatea hora con más detalle
    */
-  private formatTime(dateTimeString: string): string {
+  private formatDetailedTime(dateTimeString: string): string {
+    const date = new Date(dateTimeString);
+    return date.toLocaleString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+  }
+
+  /**
+   * Formatea hora simple
+   */
+  private formatSimpleTime(dateTimeString: string): string {
     const date = new Date(dateTimeString);
     return date.toLocaleTimeString('es-ES', {
       hour: '2-digit',
@@ -286,49 +349,19 @@ export class ArajetAlertService {
   }
 
   /**
-   * Valida un código de aeropuerto
+   * Valida un código de aeropuerto usando la configuración central
    */
   isValidAirportCode(code: string): boolean {
-    // Lista de códigos válidos de Arajet (puede expandirse)
-    const validCodes = [
-      'SCL', 'EZE', 'PUJ', 'SDQ', 'STI', 'BOG', 'MDE', 'CTG',
-      'CUN', 'GUA', 'SJO', 'SAL', 'KIN', 'NLU', 'YUL', 'YYZ',
-      'MIA', 'SJU', 'SFB', 'ORD', 'BOS', 'EWR'
-    ];
-
-    return validCodes.includes(code.toUpperCase());
+    const { isValidAirportCode } = require('../config');
+    return isValidAirportCode(code);
   }
 
   /**
-   * Obtiene información de un aeropuerto por código
+   * Obtiene información de un aeropuerto por código usando la configuración central
    */
-  getAirportInfo(code: string): { name: string; country: string } | null {
-    const airports: Record<string, { name: string; country: string }> = {
-      'SCL': { name: 'Santiago de Chile', country: 'Chile' },
-      'EZE': { name: 'Buenos Aires (Ezeiza)', country: 'Argentina' },
-      'PUJ': { name: 'Punta Cana', country: 'República Dominicana' },
-      'SDQ': { name: 'Santo Domingo', country: 'República Dominicana' },
-      'STI': { name: 'Santiago (DR)', country: 'República Dominicana' },
-      'BOG': { name: 'Bogotá', country: 'Colombia' },
-      'MDE': { name: 'Medellín', country: 'Colombia' },
-      'CTG': { name: 'Cartagena', country: 'Colombia' },
-      'CUN': { name: 'Cancún', country: 'México' },
-      'GUA': { name: 'Ciudad Guatemala', country: 'Guatemala' },
-      'SJO': { name: 'San José', country: 'Costa Rica' },
-      'SAL': { name: 'San Salvador', country: 'El Salvador' },
-      'KIN': { name: 'Kingston', country: 'Jamaica' },
-      'NLU': { name: 'Mexico City (Felipe Ángeles)', country: 'México' },
-      'YUL': { name: 'Montreal', country: 'Canadá' },
-      'YYZ': { name: 'Toronto', country: 'Canadá' },
-      'MIA': { name: 'Miami', country: 'Estados Unidos' },
-      'SJU': { name: 'San Juan', country: 'Puerto Rico' },
-      'SFB': { name: 'Orlando Sanford', country: 'Estados Unidos' },
-      'ORD': { name: 'Chicago O\'Hare', country: 'Estados Unidos' },
-      'BOS': { name: 'Boston', country: 'Estados Unidos' },
-      'EWR': { name: 'New York/Newark', country: 'Estados Unidos' }
-    };
-
-    return airports[code.toUpperCase()] || null;
+  getAirportInfo(code: string): { name: string; city: string; country: string } | null {
+    const { getAirportInfo } = require('../config');
+    return getAirportInfo(code);
   }
 
   /**

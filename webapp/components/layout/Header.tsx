@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plane, Menu, X, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { LanguageSelector } from '@/components/ui/LanguageSelector'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useBreakpoint } from '@/hooks/useBreakpoint'
@@ -19,6 +20,12 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { t } = useLanguage()
   const breakpoint = useBreakpoint()
+  const pathname = usePathname()
+  
+  // Solo mostrar en la homepage/landing page
+  if (pathname !== '/') {
+    return null
+  }
 
   // Solo mostrar el logo en desktop
   const showLogo = breakpoint === 'desktop'

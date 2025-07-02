@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AppProviders } from '../components/providers'
 import { Toaster } from 'react-hot-toast'
+import { Header } from '@/components/ui/Header'
 
 export { viewport } from './viewport'
 
@@ -12,6 +13,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://yourdomain.com'),
   title: 'Flight-Bot - Flight Price Alerts',
   description: 'Get notified when flight prices drop. Smart price monitoring for your dream destinations.',
   keywords: ['flights', 'bot', 'travel', 'price alerts', 'cheap flights', 'travel deals'],
@@ -44,6 +46,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <AppProviders>
           <div className="min-h-screen bg-gray-50">
+            <Header />
             {children}
           </div>
           <Toaster

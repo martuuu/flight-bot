@@ -196,7 +196,8 @@ export const airports = {
   // Guatemala
   GUA: { code: 'GUA', name: 'La Aurora International', city: 'Ciudad de Guatemala', country: 'Guatemala', timezone: 'America/Guatemala' },
   
-  // República Dominicana
+  // Puerto Rico
+  SJU: { code: 'SJU', name: 'Luis Muñoz Marín International', city: 'San Juan', country: 'Puerto Rico', timezone: 'America/Puerto_Rico' },
   SDQ: { code: 'SDQ', name: 'Las Américas International', city: 'Santo Domingo', country: 'República Dominicana', timezone: 'America/Santo_Domingo' },
   PUJ: { code: 'PUJ', name: 'Punta Cana International', city: 'Punta Cana', country: 'República Dominicana', timezone: 'America/Santo_Domingo' },
   STI: { code: 'STI', name: 'Gregorio Luperón International', city: 'Puerto Plata', country: 'República Dominicana', timezone: 'America/Santo_Domingo' },
@@ -293,4 +294,46 @@ export function validateConfig(): void {
   if (config.alerts.maxAlertsPerUser < 1) {
     throw new Error('MAX_ALERTS_PER_USER debe ser mayor a 0');
   }
+}
+
+/**
+ * Valida un código de aeropuerto basado en los destinos disponibles de Arajet
+ */
+export function isValidAirportCode(code: string): boolean {
+  return airports.hasOwnProperty(code.toUpperCase());
+}
+
+/**
+ * Obtiene información de un aeropuerto por código
+ */
+export function getAirportInfo(code: string): { name: string; city: string; country: string } | null {
+  const airport = airports[code.toUpperCase() as keyof typeof airports];
+  return airport ? {
+    name: airport.name,
+    city: airport.city,
+    country: airport.country
+  } : null;
+}
+
+/**
+ * Obtiene lista de códigos de aeropuertos válidos
+ */
+export function getValidAirportCodes(): string[] {
+  return Object.keys(airports);
+}
+
+/**
+ * Agrupa aeropuertos por país para mejor visualización
+ */
+export function getAirportsByCountry(): Record<string, typeof airports[keyof typeof airports][]> {
+  const grouped: Record<string, typeof airports[keyof typeof airports][]> = {};
+  
+  Object.values(airports).forEach(airport => {
+    if (!grouped[airport.country]) {
+      grouped[airport.country] = [];
+    }
+    grouped[airport.country].push(airport);
+  });
+  
+  return grouped;
 }
