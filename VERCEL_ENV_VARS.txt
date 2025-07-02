@@ -1,0 +1,38 @@
+# Production Environment Variables for Vercel
+# Copy these to Vercel Dashboard → Settings → Environment Variables
+
+# NextAuth.js Configuration (CRITICAL)
+NEXTAUTH_SECRET=iPti/VkNFTiAI/8tL4VjprAZ6JPUIG1FS6PsxzHS4lo=
+NEXTAUTH_URL=https://flight-bot.com
+
+# Google OAuth Configuration (for user login)
+GOOGLE_CLIENT_ID=tu-google-client-id-aqui
+GOOGLE_CLIENT_SECRET=tu-google-client-secret-aqui
+
+# Telegram Bot Configuration
+TELEGRAM_BOT_TOKEN=7726760770:AAEhEDu0oEGj5unLTeNxXbyJXQX4fdCVTHw
+TELEGRAM_BOT_USERNAME=tu_bot_username_aqui
+
+# JWT Secret for authentication
+JWT_SECRET=ebGHAcXahg+8PVw41r/YJNxtFJooc7DI8n/sD8iBEAs=
+
+# Database Configuration
+DATABASE_URL=file:./dev.db
+
+# Public URLs
+NEXT_PUBLIC_WEBAPP_URL=https://flight-bot.com
+
+# Email Configuration (Optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tu-email@gmail.com
+SMTP_PASS=tu-app-password
+SMTP_FROM="Flight-Bot" <tu-email@gmail.com>
+
+# Admin Configuration
+ADMIN_EMAIL=tu-email@gmail.com
+
+# Twilio Configuration (Optional)
+TWILIO_ACCOUNT_SID=tu-twilio-sid
+TWILIO_AUTH_TOKEN=tu-twilio-token
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
