@@ -1,11 +1,20 @@
 {
-  "buildCommand": "cd webapp && npm ci && npm run build",
-  "outputDirectory": "webapp/.next",
-  "installCommand": "cd webapp && npm ci",
-  "framework": "nextjs",
-  "projectSettings": {
-    "rootDirectory": "webapp"
-  },
+  "version": 2,
+  "builds": [
+    {
+      "src": "webapp/package.json",
+      "use": "@vercel/next",
+      "config": {
+        "distDir": ".next"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "webapp/$1"
+    }
+  ],
   "functions": {
     "webapp/pages/api/*.js": {
       "maxDuration": 30
