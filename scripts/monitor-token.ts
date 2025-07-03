@@ -1,11 +1,24 @@
 #!/usr/bin/env node
 
-// Script de monitoreo automático del token de Aerolíneas
-// Se ejecuta cada 12 horas para verificar si el token cambió
-// 
-// Uso:
-// - Manual: npx ts-node scripts/monitor-token.ts
-// - Cron: 0 */12 * * * cd /path/to/flight-bot && npx ts-node scripts/monitor-token.ts
+/**
+ * Monitor de Token de Aerolíneas Argentinas
+ * 
+ * Funcionalidades:
+ * - Extrae tokens de autenticación desde el frontend de Aerolíneas
+ * - Valida tokens contra la API oficial
+ * - Actualiza automáticamente el token en el servicio
+ * - Guarda backup del token para recuperación
+ * 
+ * Comandos:
+ * - status: Verificar estado del token actual
+ * - extract: Extraer y guardar un nuevo token manualmente
+ * - monitor: Monitoreo automático (default)
+ * 
+ * Uso:
+ * npx ts-node scripts/monitor-token.ts [status|extract|monitor]
+ * 
+ * Cron job recomendado: 0 star-slash-6 star star star (cada 6 horas)
+ */
 
 import axios from 'axios';
 import * as fs from 'fs';
@@ -296,8 +309,53 @@ async function checkTokenStatus(): Promise<void> {
 // Ejecutar según argumentos de línea de comandos
 const command = process.argv[2];
 
-if (command === 'status') {
-  checkTokenStatus();
-} else {
-  monitorToken();
+async function main() {
+  switch (command) {
+    case 'status':
+      await checkTokenStatus();
+      break;
+    case 'extract':
+      await extractAndSaveToken();
+      break;
+    case 'monitor':
+    default:
+      await monitorToken();
+      break;
+  }
 }
+
+/**
+ * Extraer y guardar un nuevo token manualmente
+ */
+async function extractAndSaveToken(): Promise<void> {
+  try {
+    console.log('🔍 Extrayendo nuevo token...');
+    
+    const newTokenInfo = await extractTokenFromFrontend();
+    
+    if (!newTokenInfo) {
+      console.log('❌ No se pudo extraer un token válido');
+      return;
+    }
+
+    console.log('✅ Token extraído exitosamente');
+    console.log(`📅 Extraído: ${new Date(newTokenInfo.extractedAt).toLocaleString()}`);
+    console.log(`⏰ Expira: ${newTokenInfo.expiresAt ? new Date(newTokenInfo.expiresAt).toLocaleString() : 'Desconocido'}`);
+    
+    // Actualizar servicio
+    const updated = updateTokenInService(newTokenInfo.token);
+    
+    if (updated) {
+      saveTokenInfo(newTokenInfo);
+      console.log('🔄 Token actualizado en el servicio');
+      console.log('💾 Backup guardado');
+    } else {
+      console.log('❌ Error actualizando el servicio');
+    }
+
+  } catch (error) {
+    console.error('❌ Error:', error instanceof Error ? error.message : 'Error desconocido');
+  }
+}
+
+main().catch(console.error);

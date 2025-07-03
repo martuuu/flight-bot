@@ -348,6 +348,31 @@ npm run pm2:logs     # Ver logs PM2
 npm run show-airports # Mostrar aeropuertos disponibles
 ```
 
+## 🛠️ Development Tools
+
+The project includes a comprehensive set of development tools accessible through the `dev-tools.ts` script:
+
+```bash
+# Build and test
+npx ts-node scripts/dev-tools.ts build      # Compile TypeScript
+npx ts-node scripts/dev-tools.ts test       # Run automated tests
+npx ts-node scripts/dev-tools.ts clean      # Clean temporary files
+
+# System monitoring
+npx ts-node scripts/dev-tools.ts status     # Check system health
+npx ts-node scripts/dev-tools.ts token      # Monitor Aerolíneas token
+
+# Help
+npx ts-node scripts/dev-tools.ts help       # Show all available commands
+```
+
+### Available Scripts
+
+- **`monitor-token.ts`**: Automated token management for Aerolíneas API
+- **`test-bot-functionality.ts`**: Comprehensive test suite for bot functionality
+- **`stop-bot.sh`**: Safe bot shutdown script
+- **`dev-tools.ts`**: Centralized development tools
+
 ## 📚 Documentación
 
 - **[SETUP.md](SETUP.md)** - Guía de instalación y configuración
