@@ -4,16 +4,18 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { NextAuthOptions } from 'next-auth'
+import { logger } from '@/lib/logger'
+import { env, isConfigured } from '@/lib/env-validation'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  debug: process.env.NODE_ENV === 'development',
+  debug: env.NODE_ENV === 'development',
   providers: [
     // Google OAuth Provider - Con configuración mejorada
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET 
+    ...(isConfigured.google 
       ? [GoogleProvider({
-          clientId: process.env.GOOGLE_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          clientId: env.GOOGLE_CLIENT_ID!,
+          clientSecret: env.GOOGLE_CLIENT_SECRET!,
           authorization: {
             params: {
               prompt: "consent",
@@ -59,7 +61,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           image: user.image,
-          role: user.role as any,
+          role: user.role as 'SUPERADMIN' | 'SUPPORTER' | 'PREMIUM' | 'BASIC' | 'TESTING',
           telegramId: user.telegramId || undefined,
           telegramLinked: !!user.telegramId,
           subscriptionEnd: user.subscriptionExpires?.toISOString(),
@@ -69,7 +71,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }: any) {
+    async jwt({ token, user, trigger, session }) {
       // Cuando el usuario se registra por primera vez
       if (user) {
         token.role = user.role
@@ -90,7 +92,7 @@ export const authOptions: NextAuthOptions = {
 
       return token
     },
-    async session({ session, token }: any) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub!
         session.user.role = token.role
@@ -101,7 +103,7 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     },
-    async signIn({ user, account, profile }: any) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
         try {
           // Buscar usuario existente
@@ -125,7 +127,7 @@ export const authOptions: NextAuthOptions = {
 
           return true
         } catch (error) {
-          console.error('Error durante sign in:', error)
+          logger.error('Error durante sign in', error)
           return false
         }
       }
@@ -139,7 +141,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   events: {
-    async createUser({ user }: any) {
+    async createUser({ user }) {
       // Evento que se ejecuta cuando se crea un nuevo usuario
       try {
         // Verificar si ya hay un superadmin
@@ -158,12 +160,12 @@ export const authOptions: NextAuthOptions = {
             subscriptionPlan: role === 'SUPERADMIN' ? 'PREMIUM' : 'BASIC',
             subscriptionExpires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
             // Para OAuth, marcar como verificado inmediatamente
-            emailVerified: user.emailVerified || (user.email ? new Date() : null),
+            emailVerified: user.email ? new Date() : null,
           }
         })
         
-        // Solo enviar email de verificación si no está verificado (usuarios de credenciales)
-        if (!user.emailVerified && user.email) {
+        // Solo enviar email de verificación para registro manual (no OAuth)
+        if (user.email) {
           // Generar token de verificación
           const verificationToken = await prisma.verificationToken.create({
             data: {
@@ -176,7 +178,7 @@ export const authOptions: NextAuthOptions = {
           // Enviar email de verificación
           const { sendVerificationEmail } = await import('@/lib/email')
           await sendVerificationEmail(user.email, verificationToken.token)
-          console.log('Email de verificación enviado a:', user.email)
+          logger.info('Email de verificación enviado', { email: user.email })
         }
         
         // Enviar email de bienvenida
@@ -184,15 +186,15 @@ export const authOptions: NextAuthOptions = {
           try {
             const { sendWelcomeEmail } = await import('@/lib/email')
             await sendWelcomeEmail(user.email, user.name || 'Usuario')
-            console.log('Email de bienvenida enviado a:', user.email)
+            logger.info('Email de bienvenida enviado', { email: user.email })
           } catch (emailError) {
-            console.error('Error enviando email de bienvenida:', emailError)
+            logger.error('Error enviando email de bienvenida', emailError)
           }
         }
         
-        console.log('Usuario creado con rol:', role, 'Email:', user.email)
+        logger.info('Usuario creado', { role, email: user.email })
       } catch (error) {
-        console.error('Error en evento createUser:', error)
+        logger.error('Error en evento createUser', error)
       }
     },
   },

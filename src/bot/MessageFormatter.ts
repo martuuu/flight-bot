@@ -21,6 +21,11 @@ export class MessageFormatter {
 🔍 *Búsqueda:*
 • \`/buscar\` - Buscar vuelos (en desarrollo)
 
+🎫 *Millas Aerolíneas Argentinas:*
+• \`/millas-ar\` - Crear alerta para millas promocionales
+• \`/millas-ar-search\` - Buscar ofertas de millas ahora
+• \`/millas-ar-myalerts\` - Ver alertas de millas AR
+
 💡 *Funciones Especiales:*
 • Chequeo inmediato de alertas desde \`/misalertas\`
 • Pausar/reactivar alertas individualmente
@@ -35,6 +40,10 @@ export class MessageFormatter {
 🏆 *Mejor precio disponible:*
 \`/addalert EZE PUJ - 2026-02-15\` (día)
 \`/addalert EZE PUJ - 2026-02\` (mes)
+
+🎫 *Millas Aerolíneas AR:*
+\`/millas-ar EZE MIA\` (búsqueda flexible)
+\`/millas-ar EZE MIA 2025-03-15 60000\` (fecha y máximo)
 
 *Aeropuertos disponibles:*
 

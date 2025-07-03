@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import bcrypt from 'bcryptjs'
 import { PrismaClient } from '@prisma/client'
 import { sendVerificationEmail } from '@/lib/email'
+import { handleApiError } from '@/lib/error-handler'
+import { signupSchema as validationSchema } from '@/lib/validation'
+import { authRateLimit } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
+import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
 const prisma = new PrismaClient()
 
-const signupSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
-  phone: z.string().min(10, 'Please enter a valid phone number'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-})
-
 export async function POST(request: NextRequest) {
   try {
+    // Aplicar rate limiting
+    const rateLimitResult = await authRateLimit(request)
+    if (rateLimitResult) {
+      return rateLimitResult
+    }
+
     const body = await request.json()
-    const { name, email, phone, password } = signupSchema.parse(body)
+    const { name, email, phone, password } = validationSchema.parse(body)
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -66,7 +68,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendVerificationEmail(email, verificationToken)
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError)
+      logger.error('Failed to send verification email', emailError)
       // Continue with user creation even if email fails
     }
 
@@ -80,26 +82,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
 
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { message: 'Invalid input data', errors: error.errors },
-        { status: 400 }
-      )
-    }
-
-    // Handle Prisma errors
-    if (error instanceof Error && error.message.includes('Unique constraint')) {
-      return NextResponse.json(
-        { message: 'User already exists with this email' },
-        { status: 400 }
-      )
-    }
-
-    console.error('Signup error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'signup')
   } finally {
     await prisma.$disconnect()
   }
