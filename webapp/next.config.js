@@ -9,9 +9,9 @@ const nextConfig = {
     formats: ['image/webp', 'image/avif'],
   },
   // Optimize for SEO
-  experimental: {
-    optimizeCss: true,
-  },
+  // experimental: {
+  //   optimizeCss: true,
+  // },
   // Compression
   compress: true,
   // Force HTTPS redirects
@@ -26,7 +26,7 @@ const nextConfig = {
             value: 'http',
           },
         ],
-        destination: 'https://flight-bot.com/:path*',
+        destination: 'https://$host/:path*',
         permanent: true,
       },
     ]
