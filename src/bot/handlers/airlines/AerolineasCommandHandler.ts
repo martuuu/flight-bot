@@ -2,15 +2,19 @@ import { UserModel } from '@/models';
 import { botLogger } from '@/utils/logger';
 import { ValidationUtils } from '../../utils/ValidationUtils';
 import { AirlineUtils, AirlineType } from '../../utils/AirlineUtils';
+import { AerolineasAlertService } from '@/services/AerolineasAlertService';
+import { isValidAerolineasAirport } from '@/config/aerolineas-airports';
 
 /**
  * Manejador de comandos específicos de Aerolíneas Argentinas
  */
 export class AerolineasCommandHandler {
   private bot: any;
+  private aerolineasService: AerolineasAlertService;
 
   constructor(bot: any) {
     this.bot = bot;
+    this.aerolineasService = new AerolineasAlertService();
   }
 
   /**
@@ -135,7 +139,7 @@ ${maxMiles ? `🏆 **Millas máximas**: ${maxMiles.toLocaleString()}` : '🏆 **
       return;
     }
 
-    const [origin, destination, dateStr] = args;
+    const [origin, destination, dateStr, maxMilesStr] = args;
 
     // Validar códigos de aeropuerto
     const originCode = origin.toUpperCase();
@@ -151,6 +155,11 @@ ${maxMiles ? `🏆 **Millas máximas**: ${maxMiles.toLocaleString()}` : '🏆 **
       return;
     }
 
+    if (!ValidationUtils.areAirportsDifferent(originCode, destinationCode)) {
+      await this.bot.sendMessage(chatId, '❌ El origen y destino no pueden ser iguales');
+      return;
+    }
+
     // Validar fecha
     const dateValidation = ValidationUtils.isValidDate(dateStr);
     if (!dateValidation.isValid) {
@@ -158,41 +167,114 @@ ${maxMiles ? `🏆 **Millas máximas**: ${maxMiles.toLocaleString()}` : '🏆 **
       return;
     }
 
+    // Parsear millas máximas
+    let maxMiles: number | undefined;
+    if (maxMilesStr && maxMilesStr !== '-') {
+      const milesNum = parseInt(maxMilesStr);
+      if (isNaN(milesNum) || milesNum <= 0) {
+        await this.bot.sendMessage(chatId, '❌ El número de millas debe ser un número válido mayor a 0');
+        return;
+      }
+      maxMiles = milesNum;
+    }
+
     try {
       const airlineEmoji = AirlineUtils.getAirlineEmoji(AirlineType.AEROLINEAS_ARGENTINAS);
-      await this.bot.sendMessage(chatId, `${airlineEmoji} 🔍 Función de búsqueda de millas en desarrollo...`);
+      await this.bot.sendMessage(chatId, `${airlineEmoji} 🔍 Buscando ofertas de millas...
 
-      // TODO: Implementar búsqueda cuando el servicio esté listo
-      await this.bot.sendMessage(
-        chatId,
-        `🚧 La búsqueda inmediata de millas de Aerolíneas Argentinas está en desarrollo.
+📍 **Ruta**: ${originCode} → ${destinationCode}
+📅 **Fecha**: ${dateStr}
+${maxMiles ? `🏆 **Millas máximas**: ${maxMiles.toLocaleString()}` : '🔍 **Buscando mejores ofertas**'}
 
-📋 **Búsqueda solicitada:**
-• Ruta: ${originCode} → ${destinationCode}
-• Fecha: ${dateStr}
+⏳ Esto puede tomar unos momentos...`);
 
-� Próximamente podrás buscar ofertas de millas en tiempo real.`,
-        {
-          parse_mode: 'Markdown',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '🏆 Crear Alerta', callback_data: 'help_miles_alert' },
-                { text: '� Ver Ayuda', callback_data: 'help_commands' },
-              ],
-            ],
-          },
-        }
+      // Buscar ofertas usando el servicio real
+      const offers = await this.aerolineasService.searchPromoOffersForDate(
+        originCode,
+        destinationCode,
+        dateStr,
+        { adults: 1, cabinClass: 'Economy' }
       );
+
+      if (offers.length === 0) {
+        await this.bot.sendMessage(chatId, `${airlineEmoji} 🔍 **Búsqueda completada**
+
+❌ No se encontraron ofertas promocionales para:
+• **Ruta**: ${originCode} → ${destinationCode}
+• **Fecha**: ${dateStr}
+${maxMiles ? `• **Millas máximas**: ${maxMiles.toLocaleString()}` : ''}
+
+💡 **Sugerencias**:
+• Prueba con fechas flexibles
+• Verifica que los códigos de aeropuerto sean correctos
+• Intenta con otras rutas similares
+
+🔄 También puedes crear una alerta con \`/millas-ar\` para recibir notificaciones automáticas.`);
+        return;
+      }
+
+      // Mostrar ofertas encontradas
+      let message = `${airlineEmoji} 🎉 **¡Ofertas encontradas!**
+
+📍 **Ruta**: ${originCode} → ${destinationCode}
+📅 **Fecha**: ${dateStr}
+🏆 **${offers.length} ofertas promocionales**
+
+`;
+
+      for (const offer of offers.slice(0, 5)) { // Máximo 5 ofertas
+        const departureTime = offer.segments?.[0]?.departure ? 
+          new Date(offer.segments[0].departure).toLocaleTimeString('es-AR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }) : 'Sin horario';
+        
+        message += `✈️ **${departureTime}**
+💰 **${offer.miles?.toLocaleString() || 'N/A'} millas**
+🎫 **${offer.cabinClass || 'Economy'}**
+${offer.availableSeats > 0 ? '✅ Disponible' : '⚠️ Disponibilidad limitada'}
+
+`;
+      }
+
+      if (offers.length > 5) {
+        message += `\n📋 *Mostrando 5 de ${offers.length} ofertas encontradas*`;
+      }
+
+      message += `\n💡 **Próximos pasos**:
+• Reserva rápidamente - las ofertas pueden agotarse
+• Crea una alerta con \`/millas-ar\` para futuras búsquedas
+• Verifica términos y condiciones en la web oficial`;
+
+      await this.bot.sendMessage(chatId, message, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '🔄 Buscar otra fecha', callback_data: 'search_another_date' },
+              { text: '🚨 Crear alerta', callback_data: 'create_miles_alert' }
+            ]
+          ]
+        }
+      });
 
     } catch (error) {
       botLogger.error('Error en búsqueda de millas Aerolíneas', error as Error, {
         origin: originCode,
         destination: destinationCode,
         date: dateStr,
+        maxMiles,
         airline: 'AEROLINEAS_ARGENTINAS'
       });
-      await this.bot.sendMessage(chatId, '❌ Error procesando la búsqueda. Inténtalo de nuevo más tarde.');
+
+      await this.bot.sendMessage(chatId, `${AirlineUtils.getAirlineEmoji(AirlineType.AEROLINEAS_ARGENTINAS)} ❌ **Error en la búsqueda**
+
+Ocurrió un problema al buscar ofertas. Esto puede deberse a:
+• Problemas temporales con la API de Aerolíneas
+• Código de aeropuerto incorrecto
+• Fecha inválida
+
+🔄 **Intenta nuevamente** en unos minutos o crea una alerta para recibir notificaciones automáticas.`);
     }
   }
 
@@ -274,14 +356,7 @@ ${maxMiles ? `🏆 **Millas máximas**: ${maxMiles.toLocaleString()}` : '🏆 **
    * Validar aeropuerto de Aerolíneas Argentinas
    */
   private isValidAerolineasAirport(code: string): boolean {
-    // Importar la función de validación de aeropuertos de Aerolíneas
-    try {
-      const { isValidAerolineasAirport } = require('../../../config/aerolineas-airports');
-      return isValidAerolineasAirport(code);
-    } catch (error) {
-      // Fallback a validación general si el módulo no existe
-      return ValidationUtils.isValidAirport(code);
-    }
+    return isValidAerolineasAirport(code);
   }
 
   /**

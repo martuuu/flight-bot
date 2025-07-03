@@ -16,13 +16,27 @@ export interface AerolineasCalendarResponse {
     warnMessages: string[];
     shoppingId: string;
     currency: "MILES" | "ARS" | "USD";
+    programId?: string;
+    resultType?: string;
     flightType: "ONE_WAY" | "ROUND_TRIP";
     routes: string[];
     discountsApplied: boolean;
-    market: "DOMESTIC" | "INTERNATIONAL";
+    market: "DOMESTIC" | "INTERNATIONAL" | "CABOTAGE";
     searchType?: "CALENDAR30";
   };
-  calendarOffers: {
+  facets?: any[];
+  fareRules?: any[];
+  fareFamilies?: Array<{
+    id: string;
+    name: string;
+  }>;
+  alternateOffers?: Record<string, any[]>;
+  brandedOffers?: Record<string, any[]>;
+  sortingOptions?: Array<{
+    code: string;
+    label: string;
+  }>;
+  calendarOffers?: {
     [key: string]: AerolineasCalendarOffer[];
   };
 }
@@ -39,7 +53,7 @@ export interface AerolineasFlightResponse {
     flightType: "ONE_WAY" | "ROUND_TRIP";
     routes: string[];
     discountsApplied: boolean;
-    market: "DOMESTIC" | "INTERNATIONAL";
+    market: "DOMESTIC" | "INTERNATIONAL" | "CABOTAGE";
   };
   facets: AerolineasFacet[];
   fareRules: AerolineasFareRule[];
@@ -48,9 +62,41 @@ export interface AerolineasFlightResponse {
     [key: string]: AerolineasOffer[];
   };
   brandedOffers: {
-    [key: string]: AerolineasOffer[];
+    [key: string]: AerolineasBrandedOffer[];
   };
   sortingOptions: AerolineasSortingOption[];
+}
+
+// Oferta branded (estructura real de la API)
+export interface AerolineasBrandedOffer {
+  legs: AerolineasLeg[];
+  offers: AerolineasBrandedOfferDetails[];
+}
+
+// Detalles de oferta branded
+export interface AerolineasBrandedOfferDetails {
+  offerId: string;
+  cabinClass: string;
+  bookingClass: string;
+  fareBasis: string;
+  brand: {
+    id: string;
+    name: string; // "Economy Award Promo", "Business Award Promo", etc.
+  };
+  seatAvailability: {
+    seats: number;
+    lowAvailability: boolean;
+  };
+  fare: {
+    baseFare: number;
+    taxes: number;
+    total: number;
+  };
+  discounted: boolean;
+  requiredMinMiles: {
+    amount: number; // Este es el valor real de millas!
+    currency: string;
+  };
 }
 
 // Oferta de calendario
@@ -70,23 +116,41 @@ export interface AerolineasLeg {
 }
 
 export interface AerolineasSegment {
+  flightNumber: number;
   airline: string;
-  flightNumber: string;
-  departureAirport: string;
-  arrivalAirport: string;
-  departureTime: string;
-  arrivalTime: string;
-  duration: string;
-  aircraft: string;
-  cabinClass: string;
-  bookingClass: string;
-  stops: number;
-  stopAirports?: string[];
+  operatingAirline: string;
+  departure: string; // ISO datetime
+  arrival: string; // ISO datetime
+  origin: string; // Airport code
+  destination: string; // Airport code
+  duration: number; // minutes
+  layoverDuration: number;
+  equipment: string;
+  departureTerminal?: string;
+  stopAirports: string[];
+  aircraftText: string;
 }
 
-// Detalles de oferta
+// Detalles de oferta (estructura real del calendario)
 export interface AerolineasOfferDetails {
   cabinClass: "Economy" | "Premium Economy" | "Business" | "First";
+  bookingClass: string;
+  fareBasis: string;
+  seatAvailability: {
+    seats: number;
+    lowAvailability: boolean;
+  };
+  fare: {
+    baseFare: number;
+    taxes: number;
+    total: number;
+  };
+  discounted: boolean;
+  requiredMinMiles: {
+    amount: number;
+    currency: string;
+  };
+  // Campos legacy para compatibilidad
   price?: number;
   miles?: number;
   currency?: string;
@@ -175,6 +239,9 @@ export interface AerolineasScraperConfig {
     languageBundle: string;
     calendarSearch: string;
     flightSearch: string;
+    searchBoxRules: string;
+    channelInfo: string;
+    brands: string;
   };
   headers: Record<string, string>;
   rateLimit: {
@@ -262,4 +329,25 @@ export interface AerolineasPromoConfig {
   maxDaysFromNow: number;
   preferredFamilies: string[];
   trackPriceChanges: boolean;
+}
+
+// Opción de tarifa (configuración)
+export interface AerolineasFareOption {
+  enabled: boolean;
+  detail: string;
+  includedDefaultText: string;
+  nonIncludedDefaultText: string;
+  fareName: string;
+  priority: string;
+  icon: string;
+}
+
+// Opción de tarifa
+export interface AerolineasFareOption {
+  id: string;
+  name: string;
+  description?: string;
+  price?: number;
+  miles?: number;
+  currency?: string;
 }

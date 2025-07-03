@@ -6,15 +6,35 @@ Automated flight price monitoring and alert system with Telegram bot and web app
 
 Flight Bot is a comprehensive flight price monitoring system that tracks airline prices and sends automated alerts when deals match user-defined criteria. The system consists of a Telegram bot for quick interactions and a web application for detailed management.
 
+## 🚀 Latest Updates
+
+### ✅ Aerolíneas Argentinas Plus (Millas) Integration - PRODUCTION READY
+- **Full API integration** with Aerolíneas Argentinas Plus program
+- **Promotional offers detection** for millas-based bookings (3000-5000 millas)
+- **Flexible date search** for finding the best promo deals across the month
+- **Automatic token management** with GitHub Actions monitoring every 12 hours
+- **Real-time monitoring** of promotional fares and availability
+- **Telegram bot integration** with `/millas` command and alert system
+
+### 🎯 Key Features for Millas Alerts
+- **Specific date alerts**: Monitor a specific route and date for promo offers
+- **Flexible date alerts**: Find the best promo days within a month
+- **Smart promo detection**: Automatically identifies promotional offers based on:
+  - Low millas requirements (< 6000 millas)
+  - "Economy Award Promo" fare types
+  - Best offer flags
+- **Token auto-renewal**: Automatic token monitoring and backup system
+
 ## Features
 
-- Real-time flight price monitoring via Arajet API integration
-- Monthly price analysis and trend detection
+- Real-time flight price monitoring via multiple APIs (Arajet, Aerolíneas Argentinas)
+- Monthly price analysis and trend detection for both cash and miles
 - Automated alert system with configurable thresholds
 - Multi-channel notifications (Telegram, WhatsApp via webapp)
 - User management with role-based access control
 - Comprehensive logging and error handling
 - SQLite database with automated backups
+- **NEW**: Aerolíneas Argentinas Plus millas monitoring
 
 ## Architecture
 
@@ -243,86 +263,66 @@ Una vez configurado, el bot responde a estos comandos en Telegram:
 /help
 ```
 
-## 🏗️ Arquitectura del Sistema
+## 🎯 Aerolíneas Argentinas Plus (Millas) Usage
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Telegram Bot  │────│  Command Handler │────│ Message Formatter│
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   User Models   │────│   Alert Manager  │────│  Price Monitor  │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│ SQLite Database │────│ Schedule Manager │────│ Notification Srv│
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
+### Telegram Bot Commands for Millas
 
-### 📁 Estructura del Proyecto
+```bash
+# Monitor specific date for promo millas offers
+/millas_alerta AEP SLA 2025-10-10
 
-```
-flight-bot/
-├── src/                      # Código fuente
-│   ├── bot/                  # Lógica del bot de Telegram
-│   │   ├── FlightBot.ts      # Bot principal
-│   │   ├── CommandHandler.ts # Manejador de comandos
-│   │   └── MessageFormatter.ts # Formateo de mensajes
-│   ├── services/             # Servicios del sistema
-│   │   ├── AlertManager.ts   # Gestión de alertas
-│   │   ├── PriceMonitor.ts   # Monitoreo de precios
-│   │   └── ScheduleManager.ts# Programación de tareas
-│   ├── models/               # Modelos de datos
-│   │   ├── Airport.ts        # Modelo de aeropuertos
-│   │   ├── AlertModel.ts     # Modelo de alertas
-│   │   └── UserModel.ts      # Modelo de usuarios
-│   ├── database/             # Base de datos
-│   │   ├── index.ts          # Conexión DB
-│   │   └── schema.sql        # Schema de la DB
-│   └── utils/                # Utilidades
-├── scripts/                  # Scripts de gestión
-│   ├── setup.sh              # Configuración inicial
-│   ├── start-bot.ts          # Inicio alternativo
-│   └── bot-manager.sh        # Gestión con PM2
-├── webapp/                   # Interfaz web (opcional)
-├── data/                     # Archivos de datos
-└── logs/                     # Logs del sistema
+# Monitor flexible dates for promo millas offers  
+/millas_flexible EZE BHI 2025-08-14
+
+# Check current millas alerts
+/millas_status
+
+# View millas alert history
+/millas_historial
 ```
 
-## 🔧 Tecnologías Utilizadas
+### API Usage Examples
 
-- **Runtime**: Node.js 18+ con TypeScript
-- **Bot Framework**: node-telegram-bot-api
-- **Base de Datos**: SQLite con better-sqlite3
-- **Scheduling**: node-cron para tareas automáticas
-- **HTTP Client**: axios para llamadas a APIs
-- **Logging**: winston para logs estructurados
-- **Rate Limiting**: rate-limiter-flexible
-- **Testing**: Jest para pruebas unitarias
+```typescript
+import { AerolineasAlertService } from './src/services/AerolineasAlertService';
 
-## 📊 Estado del Proyecto
+const service = new AerolineasAlertService();
 
-### ✅ Funcionalidades Completadas
-- [x] Bot de Telegram completamente funcional
-- [x] Sistema de alertas mensuales con API real de Arajet
-- [x] Base de datos SQLite con schema optimizado
-- [x] Sistema de monitoreo de precios 24/7
-- [x] Logging y manejo de errores robusto
-- [x] Rate limiting y protección contra spam
-- [x] Scripts de gestión y configuración automática
-- [x] Documentación completa
+// Search for promo offers on a specific date
+const promoOffers = await service.searchPromoOffersForDate(
+  'AEP', 'SLA', '2025-10-10', { adults: 1 }
+);
 
-### 🚀 Listo para Producción
-El bot está completamente funcional y listo para usar en producción con:
-- Análisis automático de precios
-- Notificaciones inteligentes
-- Gestión de múltiples usuarios
-- Monitoreo continuo
-- Configuración flexible
+// Search for promo offers with flexible dates
+const flexibleOffers = await service.searchPromoOffersFlexible(
+  'EZE', 'BHI', '2025-08-14', { adults: 1 }
+);
+```
 
-## 📚 Scripts Disponibles
+### Token Management
+
+```bash
+# Check token status
+npx ts-node scripts/monitor-token.ts status
+
+# Manual token monitoring
+npx ts-node scripts/monitor-token.ts
+
+# Set up automatic monitoring (cron job)
+# Add to crontab: 0 */12 * * * cd /path/to/flight-bot && npx ts-node scripts/monitor-token.ts
+```
+
+### Testing Promo Detection
+
+```bash
+# Test promotional offer detection
+npx ts-node scripts/test-promo-detection.ts
+
+# Test final service functionality
+npx ts-node scripts/test-final-service.ts
+```
+
+## 🔧 Scripts and Automation
 
 ### Desarrollo
 ```bash

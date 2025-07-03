@@ -1,0 +1,82 @@
+name: Monitor Aerolineas Token
+
+on:
+  schedule:
+    # Ejecutar cada 12 horas a las 06:00 y 18:00 UTC
+    - cron: '0 6,18 * * *'
+  workflow_dispatch: # Permitir ejecución manual
+
+jobs:
+  monitor-token:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build project
+        run: npm run build
+        
+      - name: Run token monitor
+        run: npx ts-node scripts/monitor-token.ts
+        env:
+          NODE_ENV: production
+          
+      - name: Check for token changes
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Commit and push token changes
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git commit -m "🔑 Auto-update Aerolineas token [$(date +'%Y-%m-%d %H:%M:%S')]"
+          git push
+          
+      - name: Check token status
+        run: npx ts-node scripts/monitor-token.ts status
+        
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Aerolineas Token Monitor Failed',
+              body: `
+              ## Token Monitor Failure
+              
+              The automatic token monitoring failed on ${new Date().toISOString()}.
+              
+              **Action**: Please check the token manually and update if necessary.
+              
+              **Steps to fix**:
+              1. Go to [aerolineas.com.ar](https://aerolineas.com.ar)
+              2. Extract the new token from browser dev tools
+              3. Update the token in \`src/services/AerolineasAlertService.ts\`
+              4. Commit the changes
+              
+              **Logs**: Check the [action logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+              `,
+              labels: ['bug', 'urgent', 'token-monitor']
+            });
