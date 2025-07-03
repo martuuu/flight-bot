@@ -9,11 +9,18 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   debug: process.env.NODE_ENV === 'development',
   providers: [
-    // Google OAuth Provider - Solo habilitado si las variables están configuradas
+    // Google OAuth Provider - Con configuración mejorada
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET 
       ? [GoogleProvider({
           clientId: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          authorization: {
+            params: {
+              prompt: "consent",
+              access_type: "offline",
+              response_type: "code"
+            }
+          }
         })]
       : []
     ),
@@ -192,6 +199,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
+    newUser: '/dashboard', // Redirecciona a los nuevos usuarios al dashboard
   },
   session: {
     strategy: 'jwt' as const,

@@ -48,6 +48,16 @@ function AuthErrorContent() {
 
   const getErrorInfo = (errorCode: string | null | undefined) => {
     switch (errorCode) {
+      case 'Callback':
+      case 'OAuthCallback':
+      case 'OAuthAccountNotLinked':
+        return {
+          title: 'Google Authentication Error',
+          message: 'There was an error with the Google authentication process. This could be due to an incorrect configuration or because you already have an account with a different sign-in method.',
+          icon: XCircle,
+          color: 'text-red-600',
+          bgColor: 'bg-red-100'
+        }
       case 'MissingToken':
         return {
           title: 'Token Missing',
