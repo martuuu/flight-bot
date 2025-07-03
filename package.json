@@ -1,7 +1,7 @@
 {
   "name": "flight-deals-bot",
   "version": "1.0.0",
-  "description": "Bot de Telegram para monitoreo de precios de vuelos con sistema de alertas",
+  "description": "Automated flight price monitoring and alert system with Telegram bot and web application interfaces",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
@@ -13,24 +13,14 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",
     "db:init": "ts-node -r tsconfig-paths/register src/scripts/initDb.ts",
-    "db:migrate": "ts-node -r tsconfig-paths/register src/scripts/migrate.ts",
     "typecheck": "tsc --noEmit",
-    "configure-arajet": "ts-node -r tsconfig-paths/register scripts/configure-arajet.ts",
-    "test-arajet": "ts-node -r tsconfig-paths/register scripts/test-arajet-api.ts",
-    "test-advanced": "ts-node -r tsconfig-paths/register scripts/test-advanced-endpoints.ts",
-    "analyze-response": "ts-node -r tsconfig-paths/register scripts/analyze-response.ts",
-    "compare-responses": "ts-node -r tsconfig-paths/register scripts/compare-responses.ts",
-    "test-multiple-passengers": "npx tsx scripts/test-multiple-passengers.ts",
-    "test-alert-creation": "npx tsx scripts/test-alert-creation.ts",
-    "demo-complete": "npx tsx scripts/demo-complete-system.ts",
     "start-bot": "npx tsx scripts/start-bot.ts",
     "pm2:start": "pm2 start ecosystem.config.json",
     "pm2:stop": "pm2 stop flight-bot",
     "pm2:restart": "pm2 restart flight-bot",
     "pm2:status": "pm2 status",
     "pm2:logs": "pm2 logs flight-bot",
-    "pm2:delete": "pm2 delete flight-bot",
-    "show-airports": "npx tsx scripts/show-airports.ts"
+    "pm2:delete": "pm2 delete flight-bot"
   },
   "keywords": [
     "telegram",

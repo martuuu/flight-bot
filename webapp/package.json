@@ -13,16 +13,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts",
-    "test:clean": "tsx scripts/test-multiuser-setup.ts clean",
-    "test:show": "tsx scripts/test-multiuser-setup.ts show",
-    "test:setup": "npm run db:push && npm run test:clean",
-    "test:consistency": "tsx scripts/test-data-consistency.ts consistency",
-    "test:flow": "tsx scripts/test-data-consistency.ts flow",
-    "test:auth": "tsx scripts/test-auth-complete.ts",
-    "test:google": "tsx scripts/check-google-oauth.ts",
-    "debug:redirect": "tsx scripts/debug-redirect-uri.ts",
-    "test:system": "tsx scripts/test-complete-system.ts"
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
