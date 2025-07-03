@@ -73,9 +73,23 @@ export default function SignInPage() {
   }
 
   const handleGoogleSignIn = async () => {
+    if (!hasGoogleProvider) {
+      toast.error('Google sign in is not available')
+      return
+    }
+    
     setIsGoogleLoading(true)
     try {
-      await signIn('google', { callbackUrl: '/dashboard' })
+      const result = await signIn('google', { 
+        callbackUrl: '/dashboard',
+        redirect: true 
+      })
+      
+      // Si llegamos aquí sin redirect, puede haber un error
+      if (result?.error) {
+        console.error('Google sign in error:', result.error)
+        toast.error('Failed to sign in with Google: ' + result.error)
+      }
     } catch (error) {
       console.error('Error al iniciar sesión:', error)
       toast.error('Failed to sign in with Google')

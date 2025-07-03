@@ -7,6 +7,7 @@ import { NextAuthOptions } from 'next-auth'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  debug: process.env.NODE_ENV === 'development',
   providers: [
     // Google OAuth Provider - Solo habilitado si las variables están configuradas
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET 
