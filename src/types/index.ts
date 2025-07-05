@@ -3,7 +3,7 @@
  */
 
 export interface User {
-  id: number;
+  id: string; // Cambiado a string para compatibilidad con Prisma CUID
   telegramId: number;
   username?: string;
   firstName?: string;

@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import TelegramLink from '@/components/TelegramLink'
+import TelegramLinkImproved from '@/components/TelegramLinkImproved'
 import { Card } from '@/components/ui/Card'
 import { PageTransition, FadeInComponent, StaggerContainer, StaggerItem } from '@/components/ui/PageTransition'
 
@@ -64,7 +64,7 @@ export default function ProfilePage() {
 
             {/* Gestión de Telegram */}
             <StaggerItem>
-              <TelegramLink />
+              <TelegramLinkImproved />
             </StaggerItem>
 
             {/* Información de Suscripción */}

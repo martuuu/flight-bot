@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { sendVerificationEmail } from '@/lib/email'
 import crypto from 'crypto'
-
-const prisma = new PrismaClient()
 
 const resendSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -82,7 +80,5 @@ export async function POST(request: NextRequest) {
       { message: 'Failed to send verification email' },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }

@@ -1,10 +1,9 @@
-import { UserModel } from '@/models';
 import { config } from '@/config';
 import { botLogger } from '@/utils/logger';
 import { MessageFormatter } from '../../MessageFormatter';
 import { ValidationUtils } from '../../utils/ValidationUtils';
 import { AirlineUtils, AirlineType } from '../../utils/AirlineUtils';
-import { AlertManager } from '@/services/AlertManager';
+import { AlertManagerCompatAdapter, UserModelCompatAdapter } from '@/services/AlertManagerCompatAdapter';
 import { ArajetPassenger } from '@/types/arajet-api';
 
 /**
@@ -12,11 +11,11 @@ import { ArajetPassenger } from '@/types/arajet-api';
  */
 export class ArajetCommandHandler {
   private bot: any;
-  private alertManager: AlertManager;
+  private alertManager: AlertManagerCompatAdapter;
 
   constructor(bot: any) {
     this.bot = bot;
-    this.alertManager = new AlertManager(process.env['DATABASE_PATH'] || './data/flights.db');
+    this.alertManager = new AlertManagerCompatAdapter(process.env['DATABASE_PATH'] || './data/flights.db');
   }
 
   /**
@@ -73,7 +72,7 @@ export class ArajetCommandHandler {
     }
 
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = UserModelCompatAdapter.findByTelegramId(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;
@@ -152,7 +151,7 @@ export class ArajetCommandHandler {
    */
   async handleCheckAlertNow(chatId: number, userId: number, alertId: string): Promise<void> {
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = UserModelCompatAdapter.findByTelegramId(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;

@@ -1,4 +1,4 @@
-import { UserModel } from '@/models';
+import { UserModelCompatAdapter } from '@/services/AlertManagerCompatAdapter';
 import { config } from '@/config';
 import { botLogger } from '@/utils/logger';
 import { MessageFormatter } from '../MessageFormatter';
@@ -19,7 +19,7 @@ export class BasicCommandHandler {
    */
   async handleStart(chatId: number, user: any, args: string[] = []): Promise<void> {
     if (user) {
-      UserModel.findOrCreate(
+      UserModelCompatAdapter.findOrCreate(
         user.id,
         user.username,
         user.first_name,
@@ -209,7 +209,7 @@ EZE, SCL, BOG, MIA, PUJ, STI, SDQ, CUN, SJU, YYZ, ORD, etc.
     }
 
     try {
-      const userStats = UserModel.getStats();
+      const userStats = UserModelCompatAdapter.getStats();
       // TODO: Obtener stats de alertas de múltiples sistemas
       // const alertStats = AlertModel.getStats();
       
@@ -323,6 +323,130 @@ Por ahora, crea una alerta con \`/alertas\` y te notificaremos cuando encontremo
     } catch (error) {
       botLogger.error('Error procesando autenticación webapp', error as Error, { authParam });
       await this.bot.sendMessage(chatId, '❌ Error procesando la autenticación. Contacta al soporte.');
+    }
+  }
+
+  /**
+   * Comando /link - Vincular cuenta con webapp
+   */
+  async handleLink(chatId: number, user: any, args: string[] = []): Promise<void> {
+    if (!user) {
+      await this.bot.sendMessage(chatId, '❌ Error obteniendo información del usuario.');
+      return;
+    }
+
+    try {
+      // Verificar si se proporcionó un código de vinculación
+      if (args.length === 0) {
+        const helpMessage = `🔗 **Vincular con Webapp**
+
+Para vincular tu cuenta de Telegram con la webapp:
+
+1️⃣ Ve a la webapp y genera un código de vinculación
+2️⃣ Envía el comando: \`/link CODIGO\`
+
+📱 **¿No tienes cuenta en la webapp?**
+Crea una cuenta gratuita en: https://tu-webapp.com/signup
+
+🌐 **¿Ya tienes cuenta?**
+Inicia sesión y ve a "Configuración" → "Vincular Telegram"`;
+
+        await this.bot.sendMessage(chatId, helpMessage, { 
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '🌐 Ir a Webapp', url: process.env['NEXTAUTH_URL'] || 'https://tu-webapp.com' }
+              ]
+            ]
+          }
+        });
+        return;
+      }
+
+      const linkingCode = args[0];
+
+      // Validar formato del código (6 dígitos)
+      if (!/^\d{6}$/.test(linkingCode)) {
+        await this.bot.sendMessage(chatId, '❌ Código inválido. Debe ser un código de 6 dígitos.');
+        return;
+      }
+
+      // Llamar al endpoint de la webapp para confirmar la vinculación
+      const webappUrl = process.env['NEXTAUTH_URL'] || 'http://localhost:3000';
+      
+      try {
+        const response = await fetch(`${webappUrl}/api/telegram/link-simple`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'confirm_from_bot',
+            telegramId: user.id.toString(),
+            telegramUsername: user.username,
+            telegramFirstName: user.first_name,
+            telegramLastName: user.last_name,
+            linkingCode: linkingCode
+          })
+        });
+
+        const result = await response.json() as { success?: boolean; error?: string };
+
+        if (result.success) {
+          const successMessage = `✅ **¡Vinculación exitosa!**
+
+🎉 Tu cuenta de Telegram está ahora vinculada con la webapp.
+
+**¿Qué puedes hacer ahora?**
+• 📱 Crear alertas desde Telegram con \`/addalert\`
+• 🌐 Gestionar alertas desde la webapp
+• 🔔 Recibir notificaciones en ambas plataformas
+• 📊 Ver estadísticas detalladas en la webapp
+
+**Comandos útiles:**
+• \`/misalertas\` - Ver tus alertas
+• \`/addalert BOG MIA 300\` - Crear nueva alerta
+• \`/help\` - Ver todos los comandos`;
+
+          await this.bot.sendMessage(chatId, successMessage, { 
+            parse_mode: 'Markdown',
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: '🌐 Ir al Dashboard', url: `${webappUrl}/dashboard` },
+                  { text: '✈️ Crear Alerta', callback_data: 'help_alert' }
+                ]
+              ]
+            }
+          });
+
+          botLogger.info('Usuario vinculado exitosamente', { 
+            telegramUserId: user.id, 
+            username: user.username,
+            linkingCode 
+          });
+
+        } else {
+          let errorMessage = '❌ No se pudo completar la vinculación.';
+          
+          if (result.error === 'Código de vinculación inválido o expirado') {
+            errorMessage += '\n\n🕐 El código ha expirado o es incorrecto. Genera uno nuevo desde la webapp.';
+          } else if (result.error && result.error.includes('ya está vinculado')) {
+            errorMessage += '\n\n🔗 Esta cuenta de Telegram ya está vinculada a otra cuenta.';
+          }
+
+          await this.bot.sendMessage(chatId, errorMessage);
+        }
+
+      } catch (fetchError) {
+        botLogger.error('Error conectando con webapp', fetchError as Error);
+        await this.bot.sendMessage(chatId, '❌ Error conectando con la webapp. Intenta más tarde.');
+      }
+
+    } catch (error) {
+      botLogger.error('Error en comando /link', error as Error);
+      await this.bot.sendMessage(chatId, '❌ Error procesando la vinculación. Contacta al soporte.');
     }
   }
 }

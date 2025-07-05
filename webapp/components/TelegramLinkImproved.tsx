@@ -4,36 +4,53 @@ import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
-import { botConfig } from '@/lib/bot-config'
 
 interface TelegramLinkProps {
   onLinkUpdate?: () => void
 }
 
-export default function TelegramLink({ onLinkUpdate }: TelegramLinkProps) {
+export default function TelegramLinkImproved({ onLinkUpdate }: TelegramLinkProps) {
   const { data: session, update } = useSession()
   const [isLinking, setIsLinking] = useState(false)
   const [isUnlinking, setIsUnlinking] = useState(false)
+  const [linkingCode, setLinkingCode] = useState<string | null>(null)
+  const [showLinkingInstructions, setShowLinkingInstructions] = useState(false)
 
-  const handleTelegramLink = () => {
+  const handleTelegramLink = async () => {
     if (!session?.user) return
     
     setIsLinking(true)
-    const authLink = botConfig.createUserAuthLink(
-      session.user.id,
-      session.user.role,
-      session.user.email || ''
-    )
-    
-    // Abrir en nueva ventana
-    window.open(authLink, '_blank', 'width=400,height=600')
-    setIsLinking(false)
+    try {
+      const response = await fetch('/api/telegram/link-simple', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'initiate'
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setLinkingCode(result.linkingCode)
+        setShowLinkingInstructions(true)
+      } else {
+        alert(result.error || 'Error generando código de vinculación')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error al generar código de vinculación')
+    } finally {
+      setIsLinking(false)
+    }
   }
 
   const handleTelegramUnlink = async () => {
     setIsUnlinking(true)
     try {
-      const response = await fetch('/api/telegram/link', {
+      const response = await fetch('/api/telegram/link-simple', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -52,8 +69,10 @@ export default function TelegramLink({ onLinkUpdate }: TelegramLinkProps) {
         })
         
         onLinkUpdate?.()
+        alert('Cuenta de Telegram desvinculada correctamente')
       } else {
-        throw new Error('Error al desvincular')
+        const result = await response.json()
+        alert(result.error || 'Error al desvincular')
       }
     } catch (error) {
       console.error('Error:', error)
@@ -88,6 +107,58 @@ export default function TelegramLink({ onLinkUpdate }: TelegramLinkProps) {
       <Card className="p-6">
         <div className="text-center">
           <p className="text-gray-600">Inicia sesión para gestionar tu cuenta</p>
+        </div>
+      </Card>
+    )
+  }
+
+  // Modal de instrucciones de vinculación
+  if (showLinkingInstructions && linkingCode) {
+    return (
+      <Card className="p-6">
+        <div className="text-center space-y-4">
+          <h3 className="text-lg font-semibold text-green-600">¡Código Generado!</h3>
+          
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="font-mono text-2xl font-bold text-green-800">{linkingCode}</p>
+          </div>
+
+          <div className="text-left space-y-3">
+            <p className="text-sm text-gray-600">
+              <strong>Pasos para vincular:</strong>
+            </p>
+            <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+              <li>Abre Telegram</li>
+              <li>Busca el bot <strong>@ticketscannerbot_bot</strong></li>
+              <li>Envía el comando: <code className="bg-gray-100 px-1 rounded">/link {linkingCode}</code></li>
+              <li>Confirma la vinculación en el bot</li>
+            </ol>
+          </div>
+
+          <div className="text-xs text-orange-600">
+            ⏰ Este código expira en 15 minutos
+          </div>
+
+          <div className="flex space-x-2">
+            <Button
+              onClick={() => {
+                window.open(`https://t.me/ticketscannerbot_bot?start=link_${linkingCode}`, '_blank')
+              }}
+              className="flex-1"
+            >
+              🤖 Abrir Bot de Telegram
+            </Button>
+            <Button
+              onClick={() => {
+                setShowLinkingInstructions(false)
+                setLinkingCode(null)
+              }}
+              variant="outline"
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+          </div>
         </div>
       </Card>
     )
@@ -154,7 +225,7 @@ export default function TelegramLink({ onLinkUpdate }: TelegramLinkProps) {
                 disabled={isLinking}
                 className="w-full"
               >
-                {isLinking ? 'Abriendo Telegram...' : 'Vincular con Telegram'}
+                {isLinking ? 'Generando código...' : 'Vincular con Telegram'}
               </Button>
             </div>
           )}

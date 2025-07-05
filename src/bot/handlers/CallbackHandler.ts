@@ -1,4 +1,4 @@
-import { UserModel } from '@/models';
+import { UserModelCompatAdapter } from '@/services/AlertManagerCompatAdapter';
 import { botLogger } from '@/utils/logger';
 import { MessageFormatter } from '../MessageFormatter';
 import { AirlineUtils } from '../utils/AirlineUtils';
@@ -245,7 +245,7 @@ Las alertas automáticas son la mejor forma de no perderte ninguna oferta. ¡Cr�
     // Esto requiere acceso al AlertCommandHandler, por lo que podemos usar un patrón de eventos
     // o simplemente duplicar la lógica aquí (menos ideal pero funcional)
     
-    const user = UserModel.findByTelegramId(userId);
+    const user = UserModelCompatAdapter.findByTelegramId(userId);
     if (!user) {
       await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
       return;
@@ -323,7 +323,7 @@ Actualmente el bot soporta las siguientes aerolíneas:
    */
   private async handlePauseAlert(chatId: number, userId: number, alertId: string): Promise<void> {
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = UserModelCompatAdapter.findByTelegramId(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;
@@ -344,7 +344,7 @@ Actualmente el bot soporta las siguientes aerolíneas:
    */
   private async handleCheckAlertNow(chatId: number, userId: number, alertId: string): Promise<void> {
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = UserModelCompatAdapter.findByTelegramId(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;

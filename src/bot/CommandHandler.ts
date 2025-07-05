@@ -1,4 +1,4 @@
-import { UserModel } from '@/models';
+import { UserModelPrisma } from '@/models';
 import { botLogger } from '@/utils/logger';
 import { BasicCommandHandler } from './handlers/BasicCommandHandler';
 import { AlertCommandHandler } from './handlers/AlertCommandHandler';
@@ -40,12 +40,16 @@ export class CommandHandler {
 
     // Crear usuario para todos los comandos
     if (msg.from) {
-      UserModel.findOrCreate(
-        msg.from.id,
-        msg.from.username,
-        msg.from.first_name,
-        msg.from.last_name
-      );
+      try {
+        await UserModelPrisma.findOrCreate(
+          msg.from.id,
+          msg.from.username,
+          msg.from.first_name,
+          msg.from.last_name
+        );
+      } catch (error) {
+        botLogger.error('Error creando/actualizando usuario', error as Error);
+      }
     }
 
     try {
@@ -71,6 +75,10 @@ export class CommandHandler {
 
         case '/stats':
           await this.basicHandler.handleStats(chatId);
+          break;
+
+        case '/link':
+          await this.basicHandler.handleLink(chatId, msg.from, args);
           break;
 
         case '/search':

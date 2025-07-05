@@ -1,10 +1,10 @@
-import { UserModel, AlertModel } from '@/models';
+import { AlertModel } from '@/models';
 import { config } from '@/config';
 import { botLogger } from '@/utils/logger';
 import { MessageFormatter } from '../MessageFormatter';
 import { ValidationUtils } from '../utils/ValidationUtils';
 import { AirlineUtils, AirlineType } from '../utils/AirlineUtils';
-import { AlertManager } from '@/services/AlertManager';
+import { AlertManagerCompatAdapter, UserModelCompatAdapter } from '@/services/AlertManagerCompatAdapter';
 import { ArajetPassenger } from '@/types/arajet-api';
 
 /**
@@ -13,11 +13,11 @@ import { ArajetPassenger } from '@/types/arajet-api';
  */
 export class AlertCommandHandler {
   private bot: any;
-  private alertManager: AlertManager;
+  private alertManager: AlertManagerCompatAdapter;
 
   constructor(bot: any) {
     this.bot = bot;
-    this.alertManager = new AlertManager(process.env['DATABASE_PATH'] || './data/flights.db');
+    this.alertManager = new AlertManagerCompatAdapter(process.env['DATABASE_PATH'] || './data/flights.db');
   }
 
   /**
@@ -40,7 +40,7 @@ export class AlertCommandHandler {
     }
 
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = UserModelCompatAdapter.findByTelegramId(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;
@@ -163,7 +163,7 @@ export class AlertCommandHandler {
    */
   async handleMyAlerts(chatId: number, userId: number): Promise<void> {
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = UserModelCompatAdapter.findByTelegramId(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;
@@ -275,7 +275,7 @@ export class AlertCommandHandler {
     const alertIdNum = parseInt(alertIdStr);
 
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = UserModelCompatAdapter.findByTelegramId(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;
@@ -333,7 +333,7 @@ export class AlertCommandHandler {
    */
   async handleClearAll(chatId: number, userId: number): Promise<void> {
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = UserModelCompatAdapter.findByTelegramId(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;
@@ -483,7 +483,7 @@ export class AlertCommandHandler {
       maxPrice = 500; // Precio por defecto
     }
 
-    const user = UserModel.findByTelegramId(userId);
+    const user = UserModelCompatAdapter.findByTelegramId(userId);
     if (!user) {
       await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
       return;
@@ -520,7 +520,7 @@ export class AlertCommandHandler {
     date: string | null, 
     trackBestOnly: boolean
   ): Promise<void> {
-    const user = UserModel.findByTelegramId(userId);
+    const user = UserModelCompatAdapter.findByTelegramId(userId);
     if (!user) {
       await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
       return;

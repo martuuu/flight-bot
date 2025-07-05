@@ -1,0 +1,380 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  phone         String?   // Para WhatsApp
+  password      String?   // Para autenticación manual
+  
+  // Campos de verificación de email
+  verificationToken    String?
+  verificationExpires  DateTime?
+  
+  // Campos de autenticación y roles
+  role          String  @default("BASIC")  // SUPERADMIN, SUPPORTER, PREMIUM, BASIC, TESTING
+  telegramId    String?   @unique
+  telegramUsername String?
+  telegramLinked Boolean  @default(false)
+  telegramLinkedAt DateTime?
+  
+  // Campos de vinculación temporal
+  telegramLinkingCode    String?
+  telegramLinkingExpires DateTime?
+  
+  // Campos de suscripción extendidos
+  subscriptionStatus   String   @default("ACTIVE")   // ACTIVE, INACTIVE, EXPIRED
+  subscriptionPlan     String   @default("BASIC")    // BASIC, PREMIUM
+  subscriptionExpires  DateTime?
+  subscriptionEnd      DateTime? // Backward compatibility
+  subscriptionActive   Boolean  @default(false)      // Backward compatibility
+  
+  // Metadatos
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relaciones NextAuth
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Relaciones de la app
+  alerts                Alert[]
+  flightAlerts          FlightAlert[]
+  notificationSettings  NotificationSettings?
+  priceHistory         PriceHistory[]
+  
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  userId      String
+  origin      String   // Código aeropuerto (ej: "BOG")
+  destination String   // Código aeropuerto (ej: "MIA")
+  maxPrice    Float    // Precio máximo deseado
+  currency    String   @default("USD")
+  
+  // Configuración de fechas
+  departureDate DateTime?
+  returnDate    DateTime?
+  isFlexible    Boolean   @default(true)
+  
+  // Configuración de pasajeros
+  adults        Int       @default(1)
+  children      Int       @default(0)
+  infants       Int       @default(0)
+  
+  // Estado de la alerta
+  isActive      Boolean   @default(true)
+  isPaused      Boolean   @default(false)
+  
+  // Metadatos
+  alertType     String @default("SPECIFIC") // SPECIFIC, MONTHLY
+  telegramAlertId String?  // ID de la alerta en el bot de Telegram (para sincronización)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastChecked   DateTime?
+  
+  // Relaciones
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  priceHistory  PriceHistory[]
+  notifications AlertNotification[]
+  
+  @@map("alerts")
+}
+
+model PriceHistory {
+  id        String   @id @default(cuid())
+  alertId   String
+  userId    String
+  
+  // Datos del vuelo
+  price     Float
+  currency  String   @default("USD")
+  airline   String?
+  flightNumber String?
+  departureDate DateTime
+  returnDate    DateTime?
+  
+  // Detalles del precio
+  basePrice     Float?
+  taxes         Float?
+  fees          Float?
+  
+  // Metadatos
+  foundAt   DateTime @default(now())
+  source    String   @default("ARAJET") // ARAJET, LATAM, AVIANCA
+  
+  // Relaciones
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("price_history")
+}
+
+model NotificationSettings {
+  id       String @id @default(cuid())
+  userId   String @unique
+  
+  // Canales de notificación
+  whatsappEnabled Boolean @default(true)
+  emailEnabled    Boolean @default(false)
+  
+  // Configuración de frecuencia
+  instantNotifications Boolean @default(true)
+  dailyDigest         Boolean @default(false)
+  weeklyDigest        Boolean @default(false)
+  
+  // Configuración de filtros
+  minPriceDrop        Float?  // Notificar solo si baja más de X%
+  maxNotificationsDay Int     @default(5)
+  
+  // Metadatos
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relaciones
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notification_settings")
+}
+
+model AlertNotification {
+  id        String   @id @default(cuid())
+  alertId   String
+  userId    String
+  
+  // Datos de la notificación
+  type      String // PRICE_DROP, PRICE_ALERT, SYSTEM_UPDATE, WELCOME
+  channel   String // WHATSAPP, EMAIL, SMS
+  message   String
+  
+  // Estado
+  sent      Boolean  @default(false)
+  sentAt    DateTime?
+  delivered Boolean  @default(false)
+  
+  // Datos del precio que activó la notificación
+  price     Float?
+  currency  String?  @default("USD")
+  
+  // Metadatos
+  createdAt DateTime @default(now())
+  
+  // Relaciones
+  alert     Alert    @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  @@map("alert_notifications")
+}
+
+model Airport {
+  id        String @id @default(cuid())
+  code      String @unique // IATA code (ej: "BOG")
+  name      String         // Nombre completo
+  city      String         // Ciudad
+  country   String         // País
+  timezone  String?        // Timezone
+  
+  // Metadatos
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  
+  @@map("airports")
+}
+
+model PopularDestination {
+  id          String @id @default(cuid())
+  origin      String // Código aeropuerto
+  destination String // Código aeropuerto
+  
+  // Estadísticas
+  searchCount Int     @default(0)
+  alertCount  Int     @default(0)
+  avgPrice    Float?
+  
+  // Metadatos
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([origin, destination])
+  @@map("popular_destinations")
+}
+
+// Modelo específico para el bot de Telegram
+model TelegramUser {
+  id                String    @id @default(cuid())
+  telegramId        String    @unique
+  username          String?
+  firstName         String?
+  lastName          String?
+  
+  // Estado de vinculación
+  isLinked          Boolean   @default(false)
+  linkedUserId      String?   // Referencia al User de la webapp
+  linkingCode       String?   // Código temporal para vinculación
+  linkingExpires    DateTime?
+  
+  // Metadatos
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastActivity      DateTime  @default(now())
+  
+  // Relaciones
+  flightAlerts      FlightAlert[] @relation("TelegramUserAlerts")
+  
+  @@map("telegram_users")
+}
+
+// Modelo para las alertas del bot (compatible con estructura actual)
+model FlightAlert {
+  id            String   @id @default(cuid())
+  telegramUserId String?  // ID de Telegram
+  userId        String?  // ID de usuario webapp (si está vinculado)
+  chatId        BigInt   // Chat ID de Telegram
+  
+  // Datos del vuelo
+  fromAirport   String
+  toAirport     String
+  maxPrice      Float
+  currency      String   @default("USD")
+  searchMonth   String   // YYYY-MM format
+  passengers    Json     // ArajetPassenger[]
+  
+  // Estado
+  isActive      Boolean  @default(true)
+  alertsSent    Int      @default(0)
+  
+  // Metadatos
+  createdAt     DateTime @default(now())
+  lastChecked   DateTime?
+  
+  // Relaciones
+  user              User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  telegramUser      TelegramUser?         @relation("TelegramUserAlerts", fields: [telegramUserId], references: [id], onDelete: Cascade)
+  deals             FlightDeal[]
+  notifications     AlertNotificationBot[]
+  
+  @@map("flight_alerts")
+}
+
+// Modelo para ofertas encontradas
+model FlightDeal {
+  id                  String   @id @default(cuid())
+  alertId             String
+  date                String
+  price               Float
+  priceWithoutTax     Float
+  fareClass           String
+  flightNumber        String
+  departureTime       String
+  arrivalTime         String
+  isCheapestOfMonth   Boolean  @default(false)
+  
+  // Metadatos
+  foundAt             DateTime @default(now())
+  
+  // Relación
+  alert               FlightAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  @@map("flight_deals")
+}
+
+// Modelo para notificaciones de alertas
+model AlertNotificationBot {
+  id        String   @id @default(cuid())
+  alertId   String
+  chatId    BigInt
+  message   String   @db.Text
+  
+  // Estado
+  sent      Boolean  @default(false)
+  sentAt    DateTime?
+  
+  // Datos del deal que activó la notificación
+  dealPrice Float?
+  dealDate  String?
+  
+  // Metadatos
+  createdAt DateTime @default(now())
+  
+  // Relación
+  alert     FlightAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  
+  @@map("alert_notifications_bot")
+}
+
+// Cambios para la función POST y firmas de funciones auxiliares
+// Ejemplo de implementación para el endpoint /api/telegram/link-simple/route.ts:
+//
+// export async function POST(req: NextRequest) {
+//   try {
+//     const body = await req.json(); // <-- Solo aquí
+//     const { action } = body;
+//
+//     switch (action) {
+//       case 'initiate':
+//         return await initiateLinking(body); // Pasa el body, no el req
+//       case 'confirm_from_bot':
+//         return await confirmLinkingFromBot(body); // Pasa el body, no el req
+//       default:
+//         return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
+//     }
+//   } catch (error) {
+//     // ... manejo de error
+//   }
+// }
+//
+// async function initiateLinking(body: any) { ... }
+// async function confirmLinkingFromBot(body: any) { ... }

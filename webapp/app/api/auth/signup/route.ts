@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { sendVerificationEmail } from '@/lib/email'
 import { handleApiError } from '@/lib/error-handler'
 import { signupSchema as validationSchema } from '@/lib/validation'
@@ -7,8 +7,6 @@ import { authRateLimit } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
-
-const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,7 +81,5 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     return handleApiError(error, 'signup')
-  } finally {
-    await prisma.$disconnect()
   }
 }

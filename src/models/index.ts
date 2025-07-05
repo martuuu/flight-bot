@@ -1,4 +1,5 @@
 export { UserModel } from './UserModel';
+export { UserModelPrisma } from './UserModelPrisma';
 export { AlertModel } from './AlertModel';
 export { PriceHistoryModel } from './PriceHistoryModel';
 export { Airport, AirportService } from './Airport';

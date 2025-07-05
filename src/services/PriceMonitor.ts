@@ -1,4 +1,5 @@
-import { AlertModel, PriceHistoryModel, UserModel } from '@/models';
+import { AlertModel, PriceHistoryModel } from '@/models';
+import { UserModelCompatAdapter } from '@/services/AlertManagerCompatAdapter';
 import { ScraperFactory } from '@/services/scrapers';
 import { FlightSearchParams, Alert, PriceAlert, FlightResult } from '@/types';
 import { alertLogger } from '@/utils/logger';
@@ -158,7 +159,7 @@ export class PriceMonitor {
     }
 
     // Crear objeto de alerta de precio
-    const user = UserModel.findById(alert.userId);
+    const user = UserModelCompatAdapter.findByTelegramId(alert.userId);
     if (!user) {
       alertLogger.error(`Usuario no encontrado para alerta ${alert.id}`);
       return;

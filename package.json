@@ -13,6 +13,11 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",
     "db:init": "ts-node -r tsconfig-paths/register src/scripts/initDb.ts",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset",
     "typecheck": "tsc --noEmit",
     "start-bot": "npx tsx scripts/start-bot.ts",
     "stop-bot": "./scripts/stop-bot.sh",
@@ -22,7 +27,10 @@
     "pm2:restart": "pm2 restart flight-bot",
     "pm2:status": "pm2 status",
     "pm2:logs": "pm2 logs flight-bot",
-    "pm2:delete": "pm2 delete flight-bot"
+    "pm2:delete": "pm2 delete flight-bot",
+    "dev:bot": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
+    "bot:safe": "node start-bot-safe.js",
+    "bot:stop-all": "node stop-all-bots.js"
   },
   "keywords": [
     "telegram",
@@ -35,6 +43,7 @@
   "author": "Martin Navarro",
   "license": "MIT",
   "dependencies": {
+    "@prisma/client": "^6.11.1",
     "@types/uuid": "^10.0.0",
     "axios": "^1.6.2",
     "better-sqlite3": "^9.2.2",
@@ -45,7 +54,9 @@
     "module-alias": "^2.2.3",
     "moment": "^2.29.4",
     "node-cron": "^3.0.3",
+    "node-fetch": "^2.7.0",
     "node-telegram-bot-api": "^0.64.0",
+    "prisma": "^6.11.1",
     "rate-limiter-flexible": "^4.0.1",
     "uuid": "^11.1.0",
     "winston": "^3.11.0"
