@@ -1,19 +1,18 @@
 [build]
   base = "webapp"
-  publish = ".next"
+  publish = "webapp/.next"
   command = "npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
   NPM_VERSION = "9"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Plugin esencial para Next.js en Netlify
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [functions]
-  directory = "netlify/functions"
+  directory = "webapp/netlify/functions"
 
 # Configuración para Next.js
 [build.processing]

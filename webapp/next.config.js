@@ -1,17 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    // Disable ESLint during builds to avoid config conflicts
-    ignoreDuringBuilds: true,
-  },
+  // Configure for Netlify deployment with API routes
   images: {
     domains: ['images.unsplash.com'],
     formats: ['image/webp', 'image/avif'],
   },
-  // Optimize for SEO
-  // experimental: {
-  //   optimizeCss: true,
-  // },
+  eslint: {
+    // Disable ESLint during builds to avoid config conflicts
+    ignoreDuringBuilds: true,
+  },
   // Compression
   compress: true,
   // Force HTTPS redirects
