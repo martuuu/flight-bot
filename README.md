@@ -1,5 +1,9 @@
 # Flight Bot
 
+## Resumen de migración
+
+Ver `MIGRACION_RESUMEN_FINAL.md` para un resumen de la migración y modernización del sistema.
+
 Automated flight price monitoring and alert system with Telegram bot and web application interfaces.
 
 ## Overview
