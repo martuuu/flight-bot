@@ -1,6 +1,6 @@
 [build]
   base = "webapp"
-  publish = "webapp/.next"
+  publish = ".next"
   command = "npm run build"
 
 [build.environment]
@@ -12,7 +12,7 @@
   package = "@netlify/plugin-nextjs"
 
 [functions]
-  directory = "webapp/netlify/functions"
+  directory = "netlify/functions"
 
 # Configuración para Next.js
 [build.processing]
