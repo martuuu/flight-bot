@@ -30,7 +30,11 @@
     "pm2:delete": "pm2 delete flight-bot",
     "dev:bot": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "bot:safe": "node start-bot-safe.js",
-    "bot:stop-all": "node stop-all-bots.js"
+    "bot:stop-all": "node stop-all-bots.js",
+    "dev:local": "NODE_ENV=development ts-node-dev --respawn --transpile-only -r tsconfig-paths/register --env-file=.env.local src/index.ts",
+    "start:local": "NODE_ENV=production --env-file=.env.local node dist/index.js",
+    "build:local": "tsc && tsc-alias",
+    "test:local": "NODE_ENV=test --env-file=.env.local npm test"
   },
   "keywords": [
     "telegram",

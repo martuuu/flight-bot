@@ -202,8 +202,7 @@ export class DatabaseManager {
         telegramUsername: username || null,
         name: name,
         email: `telegram_${telegramId}@temp.com`, // Email temporal para cumplir constraint
-        telegramLinked: true,
-        telegramLinkedAt: new Date(),
+        telegramLinked: false, // NO vincular automáticamente
         role: 'BASIC' // Role por defecto para usuarios solo de Telegram
       }
     });

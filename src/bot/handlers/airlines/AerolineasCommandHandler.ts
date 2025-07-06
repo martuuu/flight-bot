@@ -1,4 +1,4 @@
-import { UserModel } from '@/models';
+import { UserModelPrisma } from '@/models';
 import { botLogger } from '@/utils/logger';
 import { ValidationUtils } from '../../utils/ValidationUtils';
 import { AirlineUtils, AirlineType } from '../../utils/AirlineUtils';
@@ -78,7 +78,7 @@ export class AerolineasCommandHandler {
     }
 
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = await UserModelPrisma.findOrCreate(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;
@@ -283,7 +283,7 @@ Ocurrió un problema al buscar ofertas. Esto puede deberse a:
    */
   async handleMyAerolineasAlerts(chatId: number, userId: number): Promise<void> {
     try {
-      const user = UserModel.findByTelegramId(userId);
+      const user = await UserModelPrisma.findOrCreate(userId);
       if (!user) {
         await this.bot.sendMessage(chatId, '❌ Usuario no encontrado. Usa /start primero.');
         return;

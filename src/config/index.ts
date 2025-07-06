@@ -1,8 +1,19 @@
 import dotenv from 'dotenv';
 import { AppConfig } from '@/types';
+import path from 'path';
 
 // Cargar variables de entorno
-dotenv.config();
+// Primero intentar .env.development, luego .env por defecto
+const envPath = path.join(process.cwd(), '.env.development');
+const fs = require('fs');
+
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+  console.log('✅ Cargando variables de entorno desde .env.development');
+} else {
+  dotenv.config();
+  console.log('✅ Cargando variables de entorno desde .env por defecto');
+}
 
 /**
  * Configuración principal de la aplicación

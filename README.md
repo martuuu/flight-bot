@@ -6,6 +6,49 @@ Ver `MIGRACION_RESUMEN_FINAL.md` para un resumen de la migración y modernizaci�
 
 Automated flight price monitoring and alert system with Telegram bot and web application interfaces.
 
+## 🏗️ Architecture & Deployment
+
+### Production Infrastructure
+
+**Webapp (Frontend + API)**
+- **Platform**: Netlify (Serverless Functions)
+- **Database**: Neon PostgreSQL (Cloud)
+- **URL**: https://flight-bot.com
+- **Features**: User management, OAuth with Google, alert configuration, dashboard
+
+**Telegram Bot (Backend)**
+- **Platform**: Dedicated Linux server / VPS / Home server
+- **Requirements**: Node.js 18+, persistent connection
+- **Database**: Shared PostgreSQL with webapp
+- **Features**: Real-time price monitoring, user interaction, alert processing
+
+### Why Separate Bot Server?
+
+The Telegram bot requires:
+- **Persistent connections** for real-time price monitoring
+- **Scheduled tasks** for periodic price checks
+- **Long-running processes** for airline API polling
+- **Background jobs** for alert processing
+
+While the webapp uses serverless functions (Netlify), the bot needs a traditional server environment for continuous operation.
+
+### Deployment Options for Bot
+
+1. **Home Server** (Recommended for personal use)
+   - Raspberry Pi or dedicated PC with Linux
+   - 24/7 uptime, low cost
+   - Direct control over resources
+
+2. **VPS/Cloud Server**
+   - Digital Ocean, Linode, AWS EC2
+   - Professional uptime guarantees
+   - Scalable resources
+
+3. **Railway/Render** (Alternative)
+   - Managed platform for Node.js apps
+   - Automatic deployments
+   - Built-in monitoring
+
 ## Overview
 
 Flight Bot is a comprehensive flight price monitoring system that tracks airline prices and sends automated alerts when deals match user-defined criteria. The system consists of a Telegram bot for quick interactions and a web application for detailed management.
@@ -438,3 +481,30 @@ MIT License - Libre para uso personal y comercial.
 **¡Felices viajes! ✈️**
 
 Para soporte adicional, contacta al equipo de desarrollo o abre un issue en GitHub.
+
+## Deployment Documentation
+
+📖 **[Servidor Dedicado Setup](SERVIDOR_DEDICADO.md)** - Complete guide for bot server setup
+📖 **[Migration Summary](MIGRACION_RESUMEN_FINAL.md)** - System migration and modernization summary
+
+### Quick Start for Bot Server
+
+```bash
+# 1. Prepare server
+sudo apt update && sudo apt upgrade -y
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs git
+
+# 2. Clone and setup
+git clone https://github.com/martuuu/flight-bot.git
+cd flight-bot && npm install
+
+# 3. Configure environment
+cp .env.example .env.production
+# Edit .env.production with your database URL and bot token
+
+# 4. Start bot
+npm run start-bot
+# or with PM2 for production:
+npm run pm2:start
+```

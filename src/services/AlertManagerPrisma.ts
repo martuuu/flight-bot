@@ -26,8 +26,8 @@ export class AlertManager {
             telegramId: alert.userId.toString(),
             email: `telegram_${alert.userId}@temp.com`,
             name: `User ${alert.userId}`,
-            telegramLinked: true,
-            telegramLinkedAt: new Date()
+            telegramLinked: false, // NO vincular automáticamente
+            role: 'BASIC'
           }
         });
       }
