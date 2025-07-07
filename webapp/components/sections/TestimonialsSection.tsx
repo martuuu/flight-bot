@@ -44,7 +44,7 @@ export function TestimonialsSection() {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
+        viewport={{ once: true, amount: 0.1 }}
         className="text-center mb-16"
       >
         <motion.h2 
@@ -75,7 +75,7 @@ export function TestimonialsSection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: index * 0.1 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, amount: 0.1 }}
             className="group"
           >
             <div className="bg-white rounded-2xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300 h-full relative">
@@ -122,7 +122,7 @@ export function TestimonialsSection() {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
-        viewport={{ once: true }}
+        viewport={{ once: true, amount: 0.1 }}
         className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
       >
         <div>

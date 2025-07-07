@@ -41,7 +41,7 @@ export function HowItWorksSection() {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
+        viewport={{ once: true, amount: 0.1 }}
         className="text-center mb-16"
       >
         <motion.h2 
@@ -72,7 +72,7 @@ export function HowItWorksSection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: index * 0.2 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, amount: 0.1 }}
             className="relative text-center"
           >
             {/* Connection Line (hidden on mobile) */}
@@ -121,13 +121,13 @@ export function HowItWorksSection() {
       </div>
 
       {/* Example Alert Cards */}
-      <div className="mt-20 grid md:grid-cols-2 gap-8">
+      <div className="mt-20 grid lg:grid-cols-3 md:grid-cols-2 gap-8">
         {/* Specific Date Alert */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.1 }}
           className="h-full"
         >
           <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 rounded-3xl p-8 text-white h-full flex flex-col min-h-[480px]">
@@ -176,18 +176,18 @@ export function HowItWorksSection() {
                 <div className="bg-green-50 rounded-lg p-4 text-gray-900">
                   <div className="flex items-center space-x-2 mb-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="font-semibold">Price Alert!</span>
+                    <span className="font-semibold">🚨 ALERTA DE PRECIO!</span>
                   </div>
                   <p className="text-sm mb-2">
                     <strong>Miami → Punta Cana</strong><br />
-                    March 15, 2025
+                    15 de marzo, 2025
                   </p>
                   <p className="text-lg font-bold text-green-600 mb-2">$329 USD</p>
                   <p className="text-xs text-gray-600 mb-3">
-                    Down from $450 → You save $121!
+                    Era $450 → ¡Ahorras $121!
                   </p>
                   <button className="bg-primary-600 text-white text-sm px-4 py-2 rounded-lg font-medium">
-                    Book Now →
+                    Reservar Ahora →
                   </button>
                 </div>
               </div>
@@ -200,7 +200,7 @@ export function HowItWorksSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 1.0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.1 }}
           className="h-full"
         >
           <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 rounded-3xl p-8 text-white h-full flex flex-col min-h-[480px]">
@@ -250,19 +250,89 @@ export function HowItWorksSection() {
                 <div className="bg-blue-50 rounded-lg p-4 text-gray-900">
                   <div className="flex items-center space-x-2 mb-2">
                     <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <span className="font-semibold">Amazing March Deals! ✈️</span>
+                    <span className="font-semibold">📅 ALERTA DE MÍNIMO PRECIO! 🔥</span>
                   </div>
                   <p className="text-sm mb-3">
-                    <strong>Top European Routes:</strong><br />
-                    • NYC → Paris: $398<br />
-                    • Miami → Madrid: $445<br />
-                    • LA → Rome: $467
+                    <strong>Marzo tiene nuevo mínimo:</strong><br />
+                    • NYC → París: $398 el 30 de octubre, 2025
                   </p>
                   <p className="text-xs text-gray-600 mb-3">
-                    Flexible dates in March. Limited time offer - ends Feb 28th!
+                    Fechas flexibles en marzo. ¡Oferta limitada!
                   </p>
                   <button className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-medium">
-                    See All Deals →
+                    Ver Todas las Ofertas →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Miles Promo Alert */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.2 }}
+          viewport={{ once: true, amount: 0.1 }}
+          className="h-full"
+        >
+          <div className="relative overflow-hidden bg-gradient-to-br from-yellow-600 via-orange-600 to-red-600 rounded-3xl p-8 text-white h-full flex flex-col min-h-[480px]">
+            {/* Circular pattern background - Unique pattern for third card */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full"></div>
+              <div className="absolute top-6 right-8 w-16 h-16 bg-white/8 rounded-full"></div>
+              <div className="absolute bottom-20 left-6 w-24 h-24 bg-white/12 rounded-full"></div>
+              <div className="absolute bottom-10 right-12 w-18 h-18 bg-white/9 rounded-full"></div>
+              <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-white/6 rounded-full"></div>
+              <div className="absolute bottom-1/3 left-1/4 w-14 h-14 bg-white/11 rounded-full"></div>
+            </div>
+            
+            <div className="relative z-10 text-center flex-1 flex flex-col">
+              <motion.h3 
+                key={t('howItWorks.milesPromoTitle') || 'miles-promo-title'}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-2xl font-bold mb-4"
+              >
+                {t('howItWorks.milesPromoTitle') || 'Miles Promo Alert'}
+              </motion.h3>
+              <motion.p 
+                key={t('howItWorks.milesPromoDesc') || 'miles-promo-desc'}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="text-orange-100 mb-8 max-w-2xl mx-auto"
+              >
+                {t('howItWorks.milesPromoDesc') || 'Get notified when miles promotions appear at minimum values:'}
+              </motion.p>
+              
+              {/* WhatsApp Message Mockup - Miles Promo */}
+              <div className="bg-white rounded-xl p-6 text-left w-full max-w-sm mx-auto shadow-lg mt-auto">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                    <Plane className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Flight-Bot Millas</div>
+                    <div className="text-sm text-gray-500">1 hora atrás</div>
+                  </div>
+                </div>
+                
+                <div className="bg-orange-50 rounded-lg p-4 text-gray-900">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <CheckCircle className="h-5 w-5 text-orange-600" />
+                    <span className="font-semibold">🎟️ NUEVA PROMO EN MILLAS! 🛫</span>
+                  </div>
+                  <p className="text-sm mb-3">
+                    <strong>Aerolíneas tiene tramos PROMO:</strong><br />
+                    • Buenos Aires → París: 15.000 millas
+                  </p>
+                  <p className="text-xs text-gray-600 mb-3">
+                    ¡Valores mínimos disponibles ahora!
+                  </p>
+                  <button className="bg-orange-600 text-white text-sm px-4 py-2 rounded-lg font-medium">
+                    Ver Promoción →
                   </button>
                 </div>
               </div>

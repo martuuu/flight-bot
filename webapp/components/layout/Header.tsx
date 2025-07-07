@@ -126,17 +126,9 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
-              className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 px-6 py-6 sm:max-w-sm"
+              className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm shadow-2xl"
             >
               <div className="relative h-full">
-                {/* Background decorative elements for mobile menu */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <div className="absolute top-20 left-8 w-16 h-16 bg-gradient-to-r from-violet-400 to-purple-400 rounded-full mix-blend-multiply filter blur-lg opacity-60 animate-float"></div>
-                  <div className="absolute top-40 right-12 w-20 h-20 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full mix-blend-multiply filter blur-lg opacity-50 animate-float" style={{ animationDelay: '-1s' }}></div>
-                  <div className="absolute bottom-40 left-12 w-18 h-18 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full mix-blend-multiply filter blur-lg opacity-55 animate-float" style={{ animationDelay: '-2s' }}></div>
-                  <div className="absolute bottom-20 right-8 w-14 h-14 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full mix-blend-multiply filter blur-lg opacity-45 animate-float" style={{ animationDelay: '-3s' }}></div>
-                </div>
-
               <div className="relative z-10">
                 <div className="flex items-center justify-between">
                   <Link href="/" className="flex items-center space-x-3">
@@ -162,7 +154,7 @@ export function Header() {
                         <Link
                           key={item.name}
                           href={item.href}
-                          className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-white/60 backdrop-blur-sm transition-all duration-200"
+                          className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-100 transition-all duration-200"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           {t(item.name)}
@@ -171,9 +163,12 @@ export function Header() {
                     </div>
                     
                     <div className="py-6 space-y-4">
+                      <div className="flex justify-center mb-4">
+                        <LanguageSelector />
+                      </div>
                       <Link
                         href="/login"
-                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-white/60 backdrop-blur-sm transition-all duration-200"
+                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-100 transition-all duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {t('nav.login')}

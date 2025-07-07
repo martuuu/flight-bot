@@ -24,7 +24,7 @@ function FlipText({ text, className = '' }: { text: string; className?: string }
   }
   
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: false })
+  const isInView = useInView(ref, { once: false, amount: 0.1 })
   
   return (
     <div className="flex justify-center lg:justify-start">
@@ -155,16 +155,6 @@ export function HeroSection() {
                   />
                 </AnimatePresence>
               </div>
-              
-              <motion.span 
-                key={t('hero.title.again')}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="block"
-              >
-                {t('hero.title.again')}
-              </motion.span>
             </h1>
             
             <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8 leading-relaxed max-w-xl">
@@ -177,19 +167,19 @@ export function HeroSection() {
                 <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
                   <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                 </div>
-                <span className="font-semibold text-sm sm:text-base">10,000+ Users</span>
+                <span className="font-semibold text-sm sm:text-base">{t('hero.stats.users')}</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-700">
                 <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
                   <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                 </div>
-                <span className="font-semibold text-sm sm:text-base">Instant Alerts</span>
+                <span className="font-semibold text-sm sm:text-base">{t('hero.stats.savings')}</span>
               </div>
               <div className="flex items-center space-x-2 text-gray-700">
                 <div className="p-1.5 sm:p-2 bg-yellow-100 rounded-lg">
                   <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
                 </div>
-                <span className="font-semibold text-sm sm:text-base">4.9/5 Rating</span>
+                <span className="font-semibold text-sm sm:text-base">{t('hero.stats.alerts')}</span>
               </div>
             </div>
 
@@ -199,7 +189,7 @@ export function HeroSection() {
                 href="/auth/signup"
                 className="btn-primary group"
               >
-                <span>Get Started Free</span>
+                <span>{t('hero.cta.startFree')}</span>
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               
@@ -207,13 +197,13 @@ export function HeroSection() {
                 href="/dashboard"
                 className="btn-secondary"
               >
-                View Demo
+                {t('hero.cta.watchDemo')}
               </Link>
             </div>
 
             {/* Trust indicators */}
             <div className="text-center lg:text-left">
-              <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">Trusted by travelers worldwide</p>
+              <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">{t('hero.trustIndicators.title')}</p>
               <div className="flex justify-center lg:justify-start items-center space-x-4 opacity-60">
                 <span className="text-xs text-gray-400">⭐⭐⭐⭐⭐ 4.9/5 rating</span>
                 <span className="text-xs text-gray-400">•</span>

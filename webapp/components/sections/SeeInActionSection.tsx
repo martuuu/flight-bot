@@ -97,7 +97,7 @@ export function SeeInActionSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.1 }}
           className="text-center mb-16"
         >
           <motion.h2 
@@ -316,7 +316,7 @@ export function SeeInActionSection() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
+                viewport={{ once: true, amount: 0.1 }}
                 className="relative flex flex-col h-full"
               >
                 {/* Phone Container */}
@@ -409,7 +409,7 @@ export function SeeInActionSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.1 }}
           className="text-center mt-20 w-full flex flex-col items-center"
         >
           <motion.button 

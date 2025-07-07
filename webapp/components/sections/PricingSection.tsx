@@ -7,92 +7,89 @@ import { useLanguage } from '@/contexts/LanguageContext'
 
 const plans = [
   {
-    name: 'Free',
+    name: 'pricing.free.title',
     monthlyPrice: 0,
     yearlyPrice: 0,
     period: 'forever',
-    description: 'Perfect for occasional travelers',
+    description: 'pricing.free.description',
     icon: Gift,
     color: 'text-gray-600',
     bgColor: 'bg-gray-100',
     features: [
-      '2 active alerts per day',
-      'Price checks every 6 hours',
-      'Telegram & WhatsApp notifications',
-      'Basic price tracking',
-      'Community support',
+      'pricing.free.features.alerts',
+      'pricing.free.features.checks',
+      'pricing.free.features.notifications',
+      'pricing.free.features.tracking',
+      'pricing.free.features.support',
     ],
-    limitations: [
-      'Limited alert frequency',
-      'No monthly search feature',
-      'Standard priority',
-    ],
-    cta: 'Start Free',
+    limitations: [],
+    cta: 'pricing.startFree',
     popular: false,
   },
   {
-    name: 'Traveler',
-    monthlyPrice: 3,
-    yearlyPrice: 24, // $2/month when paid yearly
+    name: 'pricing.traveler.title',
+    monthlyPrice: 4,
+    yearlyPrice: 40,
     period: 'month',
-    description: 'Best for regular travelers',
+    description: 'pricing.traveler.description',
     icon: Zap,
     color: 'text-purple-600',
     bgColor: 'bg-purple-100',
     features: [
-      'Up to 10 active alerts',
-      'Price checks every hour',
-      'Monthly best deals search',
-      'Advanced price predictions',
-      'Priority notifications',
-      'Email support',
+      'pricing.traveler.features.alerts',
+      'pricing.traveler.features.checks',
+      'pricing.traveler.features.monthly',
+      'pricing.traveler.features.predictions',
+      'pricing.traveler.features.priority',
+      'pricing.traveler.features.support',
     ],
     limitations: [],
-    cta: 'Start 7-Day Trial',
+    cta: 'pricing.startTrial',
     popular: true,
   },
   {
-    name: 'Explorer',
-    monthlyPrice: 5,
-    yearlyPrice: 36, // $3/month when paid yearly
+    name: 'pricing.explorer.title',
+    monthlyPrice: 7,
+    yearlyPrice: 63,
     period: 'month',
-    description: 'For frequent travelers & travel planners',
+    description: 'pricing.explorer.description',
     icon: Crown,
     color: 'text-gold-600',
     bgColor: 'bg-yellow-100',
     features: [
-      'Up to 20 active alerts',
-      'Price checks every 20 minutes',
-      '2 months of historical search',
-      'AI price recommendations',
-      'Frequent flyer mile alerts',
-      'Event ticket alerts',
-      'Custom product alerts',
-      'Priority support',
-      'Early access to new features',
+      'pricing.explorer.features.alerts',
+      'pricing.explorer.features.checks',
+      'pricing.explorer.features.historical',
+      'pricing.explorer.features.ai',
+      'pricing.explorer.features.miles',
+      'pricing.explorer.features.events',
+      'pricing.explorer.features.products',
+      'pricing.explorer.features.support',
+      'pricing.explorer.features.early',
+      'pricing.explorer.features.more',
     ],
     limitations: [],
-    cta: 'Start 7-Day Trial',
+    cta: 'pricing.startTrial',
     popular: false,
   },
 ]
 
 const faqs = [
   {
-    question: 'How do the alerts work?',
-    answer: 'Our system continuously monitors flight prices across multiple airlines. When a price drops below your set threshold, you\'ll instantly receive a notification on Telegram or WhatsApp.',
+    question: 'pricing.faq.question1',
+    answer: 'pricing.faq.answer1',
   },
   {
-    question: 'Can I use both Telegram and WhatsApp?',
-    answer: 'Yes! You can receive notifications on both platforms. Telegram is our primary platform with more features, while WhatsApp is available through our webapp.',
+    question: 'pricing.faq.question2',
+    answer: 'pricing.faq.answer2',
   },
   {
-    question: 'What happens if I exceed my alert limit?',
-    answer: 'Your existing alerts will continue working, but you won\'t be able to create new ones until you upgrade or remove some existing alerts.',
+    question: 'pricing.faq.question3',
+    answer: 'pricing.faq.answer3',
   },
   {
-    question: 'Can I cancel anytime?',
-    answer: 'Absolutely! You can cancel your subscription at any time. Your alerts will continue working until the end of your billing period.',
+    question: 'pricing.faq.question4',
+    answer: 'pricing.faq.answer4',
   },
 ]
 
@@ -113,7 +110,7 @@ export function PricingSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.1 }}
           className="text-center mb-16"
         >
           <motion.h2 
@@ -183,7 +180,7 @@ export function PricingSection() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.1 }}
               className={`relative bg-white rounded-3xl shadow-xl border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
                 plan.popular 
                   ? 'border-purple-200 shadow-purple-100/50' 
@@ -214,13 +211,13 @@ export function PricingSection() {
                     <plan.icon className={`h-8 w-8 ${plan.color}`} />
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                  <p className="text-gray-600 mb-4">{plan.description}</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{t(plan.name)}</h3>
+                  <p className="text-gray-600 mb-4">{t(plan.description)}</p>
                   
                   <div className="mb-6">
                     <div className="flex items-baseline justify-center">
                       {plan.monthlyPrice === 0 ? (
-                        <span className="text-5xl font-bold text-gray-900">Free</span>
+                        <span className="text-5xl font-bold text-gray-900">{t('pricing.free.price')}</span>
                       ) : (
                         <>
                           <motion.span 
@@ -242,11 +239,11 @@ export function PricingSection() {
                       <div className="mt-2">
                         {isYearly ? (
                           <p className="text-sm text-gray-500">
-                            Billed ${plan.yearlyPrice} yearly
+                            {t('pricing.billed')} ${plan.yearlyPrice} {t('pricing.yearly').toLowerCase()}
                           </p>
                         ) : (
                           <p className="text-sm text-green-600 font-semibold">
-                            Save ${getYearlyDiscount(plan)} with yearly billing
+                            {t('pricing.saveWith')} ${getYearlyDiscount(plan)} {t('pricing.withYearly')}
                           </p>
                         )}
                       </div>
@@ -261,7 +258,7 @@ export function PricingSection() {
                       <div className="flex-shrink-0">
                         <Check className="h-5 w-5 text-green-500 mt-0.5" />
                       </div>
-                      <span className="text-gray-700 text-sm">{feature}</span>
+                      <span className="text-gray-700 text-sm">{t(feature)}</span>
                     </div>
                   ))}
                 </div>
@@ -274,7 +271,7 @@ export function PricingSection() {
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
                 >
-                  {plan.cta}
+                  {t(plan.cta)}
                 </button>
               </div>
             </motion.div>
@@ -286,7 +283,7 @@ export function PricingSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.1 }}
           className="mt-20"
         >
           <div className="text-center mb-12">
@@ -317,7 +314,7 @@ export function PricingSection() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
+                viewport={{ once: true, amount: 0.1 }}
                 className="relative bg-white rounded-2xl p-6 border-2 border-purple-100 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group overflow-hidden"
               >
                 {/* Animated background gradient */}
@@ -336,13 +333,13 @@ export function PricingSection() {
                       <span className="text-white font-bold text-sm">{index + 1}</span>
                     </div>
                     <h4 className="font-bold text-gray-900 text-lg leading-tight group-hover:text-purple-700 transition-colors duration-300">
-                      {faq.question}
+                      {t(faq.question)}
                     </h4>
                   </div>
                   
                   {/* Answer */}
                   <div className="ml-11">
-                    <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                    <p className="text-gray-600 leading-relaxed">{t(faq.answer)}</p>
                   </div>
                 </div>
 
