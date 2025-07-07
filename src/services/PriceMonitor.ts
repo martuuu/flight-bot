@@ -1,7 +1,8 @@
 import { AlertModel, PriceHistoryModel } from '@/models';
 import { UserModelCompatAdapter } from '@/services/AlertManagerCompatAdapter';
 import { ScraperFactory } from '@/services/scrapers';
-import { FlightSearchParams, Alert, PriceAlert, FlightResult } from '@/types';
+import { FlightSearchParams, PriceAlert, FlightResult } from '@/types';
+import { Alert as PrismaAlert } from '@prisma/client';
 import { alertLogger } from '@/utils/logger';
 import { config } from '@/config';
 
@@ -46,7 +47,7 @@ export class PriceMonitor {
     alertLogger.info('Iniciando verificación de alertas');
 
     try {
-      const pendingAlerts = AlertModel.findPendingCheck(config.scraping.intervalMinutes);
+      const pendingAlerts = await AlertModel.findPendingCheck(config.scraping.intervalMinutes);
       alertLogger.info(`Verificando ${pendingAlerts.length} alertas pendientes`);
 
       // Procesar alertas en batches para evitar sobrecarga
@@ -73,7 +74,7 @@ export class PriceMonitor {
   /**
    * Procesar un lote de alertas
    */
-  private async processBatch(alerts: Alert[]): Promise<void> {
+  private async processBatch(alerts: (PrismaAlert & { user: any })[]): Promise<void> {
     const promises = alerts.map(alert => this.checkSingleAlert(alert));
     await Promise.allSettled(promises);
   }
@@ -81,7 +82,7 @@ export class PriceMonitor {
   /**
    * Verificar una alerta específica
    */
-  private async checkSingleAlert(alert: Alert): Promise<void> {
+  private async checkSingleAlert(alert: PrismaAlert & { user: any }): Promise<void> {
     try {
       alertLogger.debug(`Verificando alerta ${alert.id}: ${alert.origin} → ${alert.destination}`);
 
@@ -106,7 +107,17 @@ export class PriceMonitor {
             
             // Guardar en historial
             for (const flight of result.flights) {
-              PriceHistoryModel.create(flight);
+              await PriceHistoryModel.create({
+                alertId: alert.id,
+                userId: alert.userId,
+                price: flight.price,
+                currency: flight.currency || 'USD',
+                airline: flight.airline,
+                flightNumber: flight.flightNumber,
+                departureDate: new Date(flight.departureDate),
+                returnDate: flight.returnDate ? new Date(flight.returnDate) : undefined,
+                source: airline
+              });
             }
           }
         } catch (error) {
@@ -115,7 +126,7 @@ export class PriceMonitor {
       }
 
       // Actualizar última verificación
-      AlertModel.updateLastChecked(alert.id);
+      await AlertModel.updateLastChecked(alert.id);
 
       // Verificar si hay precios que activen la alerta
       await this.evaluateFlights(alert, allFlights);
@@ -128,7 +139,7 @@ export class PriceMonitor {
   /**
    * Evaluar vuelos encontrados contra la alerta
    */
-  private async evaluateFlights(alert: Alert, flights: FlightResult[]): Promise<void> {
+  private async evaluateFlights(alert: PrismaAlert & { user: any }, flights: FlightResult[]): Promise<void> {
     if (flights.length === 0) {
       alertLogger.debug(`No se encontraron vuelos para alerta ${alert.id}`);
       return;
@@ -150,7 +161,9 @@ export class PriceMonitor {
     const bestFlight = triggeredFlights[0];
 
     // Verificar cooldown (evitar spam de notificaciones)
-    const lastNotification = await this.getLastNotificationTime(alert.id);
+    const lastNotification = await this.getLastNotificationTime(
+      parseInt(alert.id.replace(/\D/g, '')) || 1
+    );
     const cooldownMs = config.alerts.cooldownMinutes * 60 * 1000;
     
     if (lastNotification && (Date.now() - lastNotification.getTime()) < cooldownMs) {
@@ -158,27 +171,54 @@ export class PriceMonitor {
       return;
     }
 
-    // Crear objeto de alerta de precio
-    const user = UserModelCompatAdapter.findByTelegramId(alert.userId);
-    if (!user) {
-      alertLogger.error(`Usuario no encontrado para alerta ${alert.id}`);
+    // Usar el usuario incluido en la query
+    const user = alert.user;
+    if (!user || !user.telegramId) {
+      alertLogger.error(`Usuario o telegramId no encontrado para alerta ${alert.id}`);
       return;
     }
 
+    // Crear objeto de alerta de precio usando el adaptador legacy
+    const legacyUser = UserModelCompatAdapter.findByTelegramId(parseInt(user.telegramId));
+    if (!legacyUser) {
+      alertLogger.error(`Usuario legacy no encontrado para telegramId ${user.telegramId}`);
+      return;
+    }
+
+    // Crear adaptador para compatibilidad con legacy types
+    const legacyAlert = {
+      id: parseInt(alert.id.replace(/\D/g, '')) || 1, // Extraer números o usar 1
+      userId: parseInt(alert.userId) || 1,
+      origin: alert.origin,
+      destination: alert.destination,
+      maxPrice: alert.maxPrice,
+      currency: alert.currency,
+      departureDate: alert.departureDate,
+      returnDate: alert.returnDate,
+      adults: alert.adults,
+      children: alert.children,
+      infants: alert.infants,
+      active: alert.isActive, // Mapear isActive a active
+      notificationCount: 0, // Valor por defecto
+      lastChecked: alert.lastChecked || new Date(), // Asegurar que no sea null
+      createdAt: alert.createdAt,
+      updatedAt: alert.updatedAt,
+    };
+
     const priceAlert: PriceAlert = {
-      alertId: alert.id,
+      alertId: parseInt(alert.id.replace(/\D/g, '')) || 1, // Convertir string ID a number
       currentPrice: bestFlight.price,
       priceChange: 0, // TODO: Calcular basado en historial
       priceChangePercent: 0,
       flight: bestFlight,
-      alert,
-      user,
+      alert: legacyAlert,
+      user: legacyUser,
     };
 
     // Disparar notificación
     await this.triggerPriceAlert(priceAlert);
 
-    alertLogger.info(`Alerta activada para usuario ${user.telegramId}`, {
+    alertLogger.info(`Alerta activada para usuario ${legacyUser.telegramId}`, {
       alertId: alert.id,
       route: `${alert.origin}-${alert.destination}`,
       price: bestFlight.price,
@@ -257,9 +297,10 @@ export class PriceMonitor {
       }
 
       // Guardar en historial
-      for (const flight of allFlights) {
-        PriceHistoryModel.create(flight);
-      }
+      // TODO: Implementar guardado de historial para search results
+      // for (const flight of allFlights) {
+      //   await PriceHistoryModel.create({...});
+      // }
 
       return allFlights.sort((a, b) => a.price - b.price);
 

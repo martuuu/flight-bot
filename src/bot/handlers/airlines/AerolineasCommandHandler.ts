@@ -1,4 +1,5 @@
 import { UserModelPrisma } from '@/models';
+import { aerolineasAlertModelPrisma } from '@/models/AerolineasAlertModelPrisma';
 import { botLogger } from '@/utils/logger';
 import { ValidationUtils } from '../../utils/ValidationUtils';
 import { AirlineUtils, AirlineType } from '../../utils/AirlineUtils';
@@ -84,18 +85,39 @@ export class AerolineasCommandHandler {
         return;
       }
 
-      // TODO: Implementar creación de alerta cuando el modelo esté listo
+      // Crear la alerta usando el modelo Prisma
+      const alertData = {
+        userId: userId, // Se convertirá a string en el modelo
+        telegramUserId: userId.toString(),
+        origin: originCode,
+        destination: destinationCode,
+        departureDate: dateStr,
+        adults: adults,
+        children: 0,
+        infants: 0,
+        cabinClass: 'Economy' as const,
+        flightType: 'ONE_WAY' as const,
+        searchType: 'PROMO' as const,
+        ...(maxMiles ? { maxMiles } : {}), // Solo incluir si existe
+        isActive: true
+      };
+
+      const createdAlert = await aerolineasAlertModelPrisma.create(alertData);
+
       const airlineEmoji = AirlineUtils.getAirlineEmoji(AirlineType.AEROLINEAS_ARGENTINAS);
-      const successMessage = `${airlineEmoji} *Alerta de Millas en Desarrollo*
+      const successMessage = `${airlineEmoji} ✅ **Alerta de Millas Creada**
 
 ✈️ **Ruta**: ${originCode} → ${destinationCode}
 📅 **Fecha**: ${dateStr}
 👥 **Adultos**: ${adults}
 ${maxMiles ? `🏆 **Millas máximas**: ${maxMiles.toLocaleString()}` : '🏆 **Millas**: Sin límite'}
+🆔 **ID de Alerta**: \`${createdAlert.id}\`
 
-🚧 La funcionalidad de alertas de millas está en desarrollo. Pronto podrás crear alertas automáticas para ofertas de millas de Aerolíneas Argentinas.
+� Recibirás notificaciones cuando encontremos ofertas que cumplan tus criterios.
 
-💡 Por ahora, usa \`/millas-ar-search\` para buscar ofertas inmediatas.`;
+💡 **Próximos pasos**:
+• Usa \`/mis-alertas-millas-ar\` para ver todas tus alertas
+• Usa \`/millas-ar-search\` para buscar ofertas inmediatas`;
 
       await this.bot.sendMessage(chatId, successMessage, {
         parse_mode: 'Markdown',
@@ -291,26 +313,81 @@ Ocurrió un problema al buscar ofertas. Esto puede deberse a:
 
       const airlineEmoji = AirlineUtils.getAirlineEmoji(AirlineType.AEROLINEAS_ARGENTINAS);
       
-      // TODO: Implementar cuando el modelo esté listo
+      // Obtener alertas del usuario usando el modelo Prisma
+      const alerts = await aerolineasAlertModelPrisma.findByTelegramUserId(userId.toString());
+      
+      if (alerts.length === 0) {
+        await this.bot.sendMessage(
+          chatId,
+          `${airlineEmoji} 🏆 **Alertas de Millas - Aerolíneas Argentinas**
+
+📭 No tienes alertas de millas activas.
+
+💡 **Crea tu primera alerta:**
+• Usa \`/millas-ar ORIGEN DESTINO FECHA\`
+• Ejemplo: \`/millas-ar EZE MIA 2025-08-15\`
+
+✈️ **Rutas populares:**
+• Buenos Aires ↔ Miami: \`EZE-MIA\`
+• Buenos Aires ↔ Madrid: \`EZE-MAD\`
+• Buenos Aires ↔ Santiago: \`EZE-SCL\``,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: '🏆 Crear Alerta', callback_data: 'help_miles_alert' },
+                  { text: '📋 Ver Ayuda', callback_data: 'help_commands' },
+                ],
+              ],
+            },
+          }
+        );
+        return;
+      }
+
+      // Formatear las alertas
+      let message = `${airlineEmoji} 🏆 **Mis Alertas de Millas - Aerolíneas Argentinas**
+
+📊 **${alerts.length} alerta${alerts.length > 1 ? 's' : ''} activa${alerts.length > 1 ? 's' : ''}**
+
+`;
+
+      for (let i = 0; i < alerts.length && i < 10; i++) { // Máximo 10 alertas
+        const alert = alerts[i];
+        const status = alert.isActive ? '🟢 Activa' : '🔴 Pausada';
+        const maxMilesText = alert.maxMiles ? `${alert.maxMiles.toLocaleString()} millas max` : 'Sin límite';
+        
+        message += `**${i + 1}.** ${alert.origin} → ${alert.destination}
+📅 ${alert.departureDate || 'Fecha flexible'}
+👥 ${alert.adults} adulto${alert.adults > 1 ? 's' : ''}
+🏆 ${maxMilesText}
+${status}
+🆔 \`${alert.id}\`
+
+`;
+      }
+
+      if (alerts.length > 10) {
+        message += `\n📋 *Mostrando 10 de ${alerts.length} alertas*`;
+      }
+
+      message += `\n💡 **Comandos útiles:**
+• \`/millas-ar\` - Crear nueva alerta
+• \`/millas-ar-search\` - Buscar ofertas inmediatas
+
+🔔 Recibirás notificaciones cuando encontremos ofertas que cumplan tus criterios.`;
+
       await this.bot.sendMessage(
         chatId,
-        `${airlineEmoji} 🏆 **Alertas de Millas - Aerolíneas Argentinas**
-
-🚧 La funcionalidad de alertas de millas está en desarrollo.
-
-💡 Próximamente podrás:
-• Ver todas tus alertas de millas activas
-• Pausar/reactivar alertas individualmente
-• Recibir notificaciones automáticas
-
-📋 Usa \`/millas-ar\` para crear tu primera alerta cuando esté disponible.`,
+        message,
         {
           parse_mode: 'Markdown',
           reply_markup: {
             inline_keyboard: [
               [
-                { text: '🏆 Crear Alerta', callback_data: 'help_miles_alert' },
-                { text: '� Ver Ayuda', callback_data: 'help_commands' },
+                { text: '🏆 Nueva Alerta', callback_data: 'create_miles_alert' },
+                { text: '🔍 Buscar Ofertas', callback_data: 'search_miles_now' },
               ],
             ],
           },
@@ -319,7 +396,7 @@ Ocurrió un problema al buscar ofertas. Esto puede deberse a:
 
     } catch (error) {
       botLogger.error('Error obteniendo alertas de millas', error as Error, { userId });
-      await this.bot.sendMessage(chatId, '❌ Error obteniendo tus alertas de millas.');
+      await this.bot.sendMessage(chatId, `${AirlineUtils.getAirlineEmoji(AirlineType.AEROLINEAS_ARGENTINAS)} ❌ Error obteniendo tus alertas de millas. Inténtalo de nuevo.`);
     }
   }
 

@@ -82,6 +82,7 @@ model User {
   // Relaciones de la app
   alerts                Alert[]
   flightAlerts          FlightAlert[]
+  aerolineasAlerts      AerolineasAlert[]
   notificationSettings  NotificationSettings?
   priceHistory         PriceHistory[]
   
@@ -273,6 +274,7 @@ model TelegramUser {
   
   // Relaciones
   flightAlerts      FlightAlert[] @relation("TelegramUserAlerts")
+  aerolineasAlerts  AerolineasAlert[]
   
   @@map("telegram_users")
 }
@@ -353,6 +355,52 @@ model AlertNotificationBot {
   alert     FlightAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
   
   @@map("alert_notifications_bot")
+}
+
+// Modelo para alertas específicas de Aerolíneas Argentinas
+model AerolineasAlert {
+  id                String   @id @default(cuid())
+  userId            String   // ID del usuario de la webapp
+  telegramUserId    String?  // ID del usuario de Telegram (si aplica)
+  
+  // Datos del vuelo
+  origin            String
+  destination       String
+  departureDate     String?  // YYYY-MM-DD format
+  returnDate        String?  // YYYY-MM-DD format
+  
+  // Pasajeros
+  adults            Int      @default(1)
+  children          Int      @default(0)
+  infants           Int      @default(0)
+  
+  // Configuración de vuelo
+  cabinClass        String   @default("Economy") // Economy, Business, First
+  flightType        String   @default("ONE_WAY") // ONE_WAY, ROUND_TRIP
+  searchType        String   @default("PROMO")   // PROMO, PLUS_ULTRA, CLASSIC
+  
+  // Límites de búsqueda
+  maxMiles          Int?     // Para búsquedas de millas
+  maxPrice          Int?     // Para búsquedas de dinero
+  minAvailableSeats Int      @default(1)
+  
+  // Preferencias avanzadas
+  preferredTimes    Json?    // Array de horarios preferidos
+  excludeStops      Boolean  @default(false)
+  
+  // Estado
+  isActive          Boolean  @default(true)
+  lastChecked       DateTime?
+  
+  // Metadatos
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relaciones
+  user              User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  telegramUser      TelegramUser? @relation(fields: [telegramUserId], references: [id], onDelete: Cascade)
+  
+  @@map("aerolineas_alerts")
 }
 
 // Cambios para la función POST y firmas de funciones auxiliares

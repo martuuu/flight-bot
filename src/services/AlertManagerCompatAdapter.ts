@@ -10,7 +10,7 @@ import { scrapingLogger as databaseLogger } from '@/utils/logger';
 export class AlertManagerCompatAdapter {
   private botAlertManager: BotAlertManager;
 
-  constructor(_dbPath: string) {
+  constructor(_dbPath?: string) {
     // dbPath mantenido para compatibilidad pero no usado (Prisma usa DATABASE_URL)
     this.botAlertManager = new BotAlertManager();
     databaseLogger.info('AlertManagerCompatAdapter inicializado - usando Prisma en el backend');
@@ -127,7 +127,34 @@ export class AlertManagerCompatAdapter {
  */
 export class UserModelCompatAdapter {
   /**
-   * Buscar o crear usuario (interfaz síncrona)
+   * Buscar o crear usuario por Telegram ID (asíncrono)
+   */
+  static async findOrCreateByTelegramId(telegramId: number): Promise<any> {
+    try {
+      const user = await UserModelPrisma.findOrCreate(
+        telegramId,
+        undefined, // username
+        undefined, // firstName  
+        undefined  // lastName
+      );
+      
+      return {
+        id: user.id, // Ya es un string CUID
+        telegramId: user.telegramId,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        createdAt: user.createdAt,
+        isActive: user.isActive || true
+      };
+    } catch (error) {
+      databaseLogger.error('Error en findOrCreateByTelegramId:', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Buscar o crear usuario (interfaz síncrona) - DEPRECADO
    */
   static findOrCreate(
     telegramId: number,
@@ -157,7 +184,7 @@ export class UserModelCompatAdapter {
   }
 
   /**
-   * Buscar usuario por Telegram ID
+   * Buscar usuario por Telegram ID - DEPRECADO
    */
   static findByTelegramId(telegramId: number): any {
     // Por ahora devolver un objeto básico

@@ -26,8 +26,6 @@ const envSchema = z.object({
   // Bot config opcional
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_BOT_USERNAME: z.string().optional(),
-  BOT_DATABASE_PATH: z.string().optional(),
-  BOT_ALERTS_DATABASE_PATH: z.string().optional(),
   
   // JWT opcional
   JWT_SECRET: z.string().optional(),
@@ -52,5 +50,5 @@ export const isConfigured = {
   email: !!(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS),
   twilio: !!(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN),
   telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_BOT_USERNAME),
-  botIntegration: !!(env.BOT_DATABASE_PATH && env.BOT_ALERTS_DATABASE_PATH),
+  database: !!env.DATABASE_URL,
 }

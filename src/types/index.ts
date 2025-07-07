@@ -128,7 +128,7 @@ export interface AppConfig {
     adminChatId?: number;
   };
   database: {
-    path: string;
+    url: string;
     backupPath: string;
   };
   scraping: {

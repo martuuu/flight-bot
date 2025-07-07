@@ -1,6 +1,6 @@
 import { db } from '@/database';
 import { dbLogger } from '@/utils/logger';
-import { Alert as PrismaAlert, PriceHistory } from '@prisma/client';
+import { Alert as PrismaAlert } from '@prisma/client';
 
 /**
  * Modelo para operaciones CRUD de alertas usando Prisma
@@ -31,8 +31,8 @@ export class AlertModel {
           destination: destination.toUpperCase(),
           maxPrice,
           currency,
-          departureDate,
-          returnDate,
+          departureDate: departureDate || null,
+          returnDate: returnDate || null,
           adults,
           children,
           infants,
@@ -74,7 +74,7 @@ export class AlertModel {
   }
 
   /**
-   * Obtener alertas activas de un usuario
+   * Obtener alertas activas de un usuario por String ID
    */
   static async findActiveByUserId(userId: string): Promise<PrismaAlert[]> {
     try {
@@ -90,7 +90,7 @@ export class AlertModel {
         include: {
           priceHistory: {
             orderBy: {
-              createdAt: 'desc',
+              foundAt: 'desc',
             },
             take: 1, // Solo el precio más reciente
           },
@@ -99,6 +99,46 @@ export class AlertModel {
     } catch (error) {
       dbLogger.error('Error obteniendo alertas activas de usuario', error as Error);
       throw error;
+    }
+  }
+
+  /**
+   * Obtener alertas activas de un usuario por Telegram ID
+   */
+  static async findActiveByTelegramId(telegramId: number): Promise<PrismaAlert[]> {
+    try {
+      const prisma = db.getClient();
+      
+      // Buscar el usuario de Telegram y obtener su ID de usuario vinculado
+      const telegramUser = await prisma.telegramUser.findUnique({
+        where: { telegramId: telegramId.toString() },
+      });
+
+      if (!telegramUser?.linkedUserId) {
+        dbLogger.info(`Usuario de Telegram ${telegramId} no tiene usuario vinculado`);
+        return [];
+      }
+
+      return await prisma.alert.findMany({
+        where: {
+          userId: telegramUser.linkedUserId,
+          isActive: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          priceHistory: {
+            orderBy: {
+              foundAt: 'desc',
+            },
+            take: 1, // Solo el precio más reciente
+          },
+        },
+      });
+    } catch (error) {
+      dbLogger.error('Error obteniendo alertas activas por Telegram ID', error as Error);
+      return [];
     }
   }
 
@@ -116,7 +156,7 @@ export class AlertModel {
         include: {
           priceHistory: {
             orderBy: {
-              createdAt: 'desc',
+              foundAt: 'desc',
             },
             take: 1,
           },
@@ -267,6 +307,45 @@ export class AlertModel {
     } catch (error) {
       dbLogger.error('Error obteniendo estadísticas de alertas', error as Error);
       return { total: 0, active: 0, paused: 0, today: 0 };
+    }
+  }
+
+  /**
+   * Obtener alertas que necesitan verificación
+   */
+  static async findPendingCheck(limitMinutes = 30): Promise<(PrismaAlert & { user: any })[]> {
+    try {
+      const prisma = db.getClient();
+      const cutoffTime = new Date();
+      cutoffTime.setMinutes(cutoffTime.getMinutes() - limitMinutes);
+
+      return await prisma.alert.findMany({
+        where: {
+          isActive: true,
+          isPaused: false,
+          OR: [
+            { lastChecked: null },
+            { lastChecked: { lt: cutoffTime } }
+          ]
+        },
+        orderBy: [
+          { lastChecked: 'asc' },
+          { createdAt: 'asc' }
+        ],
+        take: 50, // Limitar a 50 alertas por verificación
+        include: {
+          user: true, // Incluir información del usuario
+          priceHistory: {
+            orderBy: {
+              foundAt: 'desc',
+            },
+            take: 1,
+          },
+        },
+      });
+    } catch (error) {
+      dbLogger.error('Error obteniendo alertas pendientes de verificación', error as Error);
+      return [];
     }
   }
 }

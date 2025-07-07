@@ -203,7 +203,7 @@ export class ScheduleManager {
 
       // Verificar base de datos
       try {
-        healthStatus.database = db.checkIntegrity();
+        healthStatus.database = await db.checkIntegrity();
       } catch (error) {
         healthStatus.database = false;
         alertLogger.error('Health check: Error en base de datos', error as Error);

@@ -21,7 +21,7 @@ async function initializeDatabase(): Promise<void> {
     });
 
     // Verificar integridad
-    const isHealthy = db.checkIntegrity();
+    const isHealthy = await db.checkIntegrity();
     if (isHealthy) {
       botLogger.info('✅ Verificación de integridad: OK');
     } else {

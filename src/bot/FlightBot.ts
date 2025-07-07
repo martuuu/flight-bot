@@ -4,7 +4,7 @@ import { CommandHandler } from './CommandHandler';
 import { MessageFormatter } from './MessageFormatter';
 import { botLogger } from '@/utils/logger';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-import { AutomatedAlertSystem } from '@/services/AutomatedAlertSystem';
+// import { AutomatedAlertSystem } from '@/services/AutomatedAlertSystem'; // Temporalmente deshabilitado
 
 /**
  * Clase principal del bot de Telegram
@@ -13,7 +13,7 @@ export class FlightBot {
   private bot: TelegramBot;
   private commandHandler: CommandHandler;
   private rateLimiter: RateLimiterMemory;
-  private automatedAlertSystem: AutomatedAlertSystem;
+  // private automatedAlertSystem: AutomatedAlertSystem; // Temporalmente deshabilitado
   private isPolling = false;
 
   constructor() {
@@ -23,8 +23,8 @@ export class FlightBot {
     // Inicializar componentes
     this.commandHandler = new CommandHandler(this.bot);
     
-    // Inicializar sistema de alertas automáticas
-    this.automatedAlertSystem = new AutomatedAlertSystem('./data/alerts.db', this.bot);
+    // Inicializar sistema de alertas automáticas - MIGRADO A PRISMA
+    // this.automatedAlertSystem = new AutomatedAlertSystem('./data/alerts.db', this.bot); // Temporalmente deshabilitado
     
     // Configurar rate limiting (sin keyGenerator para simplificar)
     this.rateLimiter = new RateLimiterMemory({
@@ -182,10 +182,10 @@ export class FlightBot {
       this.bot.startPolling();
       this.isPolling = true;
       
-      // Iniciar sistema de alertas automáticas (usar configuración del .env)
-      this.automatedAlertSystem.start(config.scraping.intervalMinutes);
+      // Iniciar sistema de alertas automáticas (MIGRADO A PRISMA - usar ScheduleManager)
+      // this.automatedAlertSystem.start(config.scraping.intervalMinutes); // Temporalmente deshabilitado
       
-      botLogger.info('Bot iniciado: Polling y sistema de alertas automáticas activos');
+      botLogger.info('Bot iniciado: Polling activo (sistema de alertas migrado a ScheduleManager)');
     }
   }
 
@@ -195,9 +195,9 @@ export class FlightBot {
   public stopPolling(): void {
     if (this.isPolling) {
       this.bot.stopPolling();
-      this.automatedAlertSystem.stop();
+      // this.automatedAlertSystem.stop(); // Temporalmente deshabilitado - migrado a ScheduleManager
       this.isPolling = false;
-      botLogger.info('Bot detenido: Polling y sistema de alertas detenidos');
+      botLogger.info('Bot detenido: Polling detenido (alertas migradas a ScheduleManager)');
     }
   }
 

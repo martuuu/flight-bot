@@ -15,7 +15,7 @@ export class ArajetCommandHandler {
 
   constructor(bot: any) {
     this.bot = bot;
-    this.alertManager = new AlertManagerCompatAdapter(process.env['DATABASE_PATH'] || './data/flights.db');
+    this.alertManager = new AlertManagerCompatAdapter();
   }
 
   /**

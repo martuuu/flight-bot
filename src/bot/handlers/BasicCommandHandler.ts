@@ -19,11 +19,10 @@ export class BasicCommandHandler {
    */
   async handleStart(chatId: number, user: any, args: string[] = []): Promise<void> {
     if (user) {
-      UserModelCompatAdapter.findOrCreate(
-        user.id,
-        user.username,
-        user.first_name,
-        user.last_name
+      // Crear o encontrar usuario usando la nueva versión asíncrona
+      await UserModelCompatAdapter.findOrCreateByTelegramId(
+        user.id
+        // Nota: por ahora omitimos username, first_name, last_name hasta que se corrija el adaptador
       );
 
       // Verificar si hay parámetros de autenticación desde webapp

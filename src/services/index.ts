@@ -3,4 +3,4 @@ export { NotificationService } from './NotificationService';
 export { ScheduleManager } from './ScheduleManager';
 export { AerolineasAlertService } from './AerolineasAlertService';
 export { BotAlertManager } from './BotAlertManager';
-export { AlertManager } from './AlertManager'; // Legacy SQLite
+// AlertManager eliminado - usamos Prisma directamente

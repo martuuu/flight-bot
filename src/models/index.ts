@@ -1,7 +1,9 @@
-// export { UserModel } from './UserModel'; // Movido a UserModel.ts.sqlite (legacy SQLite)
+// Modelos Prisma - PostgreSQL
 export { UserModelPrisma } from './UserModelPrisma';
-export { AlertModel } from './AlertModel'; // Ahora usa Prisma
-export { PriceHistoryModel } from './PriceHistoryModel';
+export { AlertModel } from './AlertModel'; // Migrado a Prisma
+export { PriceHistoryModel } from './PriceHistoryModel'; // Migrado a Prisma
+export { AerolineasAlertModelPrisma } from './AerolineasAlertModelPrisma'; // Modelo principal para Aerolíneas
+
+// Modelos auxiliares
 export { Airport, AirportService } from './Airport';
 export { FlightDetails, FlightDetailsModel } from './FlightDetails';
-export { AerolineasAlertModel } from './AerolineasAlertModel';

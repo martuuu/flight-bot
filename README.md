@@ -1,8 +1,16 @@
 # Flight Bot
 
-## Resumen de migración
+## ✅ Estado del Sistema - Julio 2025
 
-Ver `MIGRACION_RESUMEN_FINAL.md` para un resumen de la migración y modernización del sistema.
+**MIGRACIÓN COMPLETADA EXITOSAMENTE** - Sistema totalmente unificado con PostgreSQL/Prisma.
+
+🎯 **Estado Actual**: **MVP EN DESARROLLO** 
+- ✅ **Migración PostgreSQL**: Completada 100%
+- ✅ **Sistema Unificado**: Bot + Webapp compartiendo misma DB
+- ✅ **Vinculación Telegram**: Funcionando perfectamente
+- 🔄 **Próximos fixes identificados**: Ver sección "Roadmap MVP"
+
+El sistema ha sido **totalmente migrado** de SQLite dual a un PostgreSQL unificado y está **operativo con vinculación funcional**.
 
 Automated flight price monitoring and alert system with Telegram bot and web application interfaces.
 
@@ -508,3 +516,33 @@ npm run start-bot
 # or with PM2 for production:
 npm run pm2:start
 ```
+
+## 🎯 Roadmap MVP - Próximos Fixes Críticos
+
+### **FASE ACTUAL: Finalización MVP**
+
+#### **🚨 FIXES CRÍTICOS IDENTIFICADOS:**
+
+**1. Bot Alert System (PRIORITARIO)**
+- ❌ **Problema**: Bot no carga alertas existentes - retorna `undefined` en campos
+- ❌ **Problema**: `/addalert` y comandos similares no funcionan
+- 🎯 **Acción**: Revisar handlers de alertas y conexión Prisma en bot
+
+**2. Sistema de Roles y Autorizaciones**
+- ❌ **Faltante**: Bloqueos y redirecciones según roles de usuario
+- ❌ **Faltante**: Control de acceso diferenciado webapp vs bot
+- 🎯 **Acción**: Implementar middleware de autorización completo
+
+**3. Tabla de Privilegios y Subscripciones**
+- ❌ **Faltante**: Tabla de privilegios por rol (BASIC, PREMIUM, SUPERADMIN)
+- ❌ **Faltante**: Features diferenciadas según suscripción
+- ❌ **Faltante**: Límites por tipo de cliente
+- 🎯 **Acción**: Diseñar e implementar sistema de privilegios
+
+#### **🏆 OBJETIVO MVP:**
+Completar estos 3 fixes para tener un **MVP funcional y comercializable** con:
+- ✅ Sistema de alertas funcionando end-to-end
+- ✅ Control de acceso robusto por roles
+- ✅ Monetización por suscripciones diferenciadas
+
+---

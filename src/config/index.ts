@@ -25,7 +25,7 @@ export const config: AppConfig = {
     ...(process.env['ADMIN_CHAT_ID'] && { adminChatId: parseInt(process.env['ADMIN_CHAT_ID']) }),
   },
   database: {
-    path: process.env['DATABASE_PATH'] || './data/flights.db',
+    url: process.env['DATABASE_URL'] || '',
     backupPath: process.env['DATABASE_BACKUP_PATH'] || './backups/',
   },
   scraping: {
